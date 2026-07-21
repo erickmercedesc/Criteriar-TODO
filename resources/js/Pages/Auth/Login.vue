@@ -41,50 +41,57 @@ const submit = () => {
             {{ status }}
         </div>
 
-        <form @submit.prevent="submit">
+        <form @submit.prevent="submit" class="flex flex-col gap-6">
+            <div class="text-center mb-2">
+                <h1 class="text-[28px] font-bold text-[#F0F2F8] font-inter">Bienvenido</h1>
+                <p class="text-[#7B82A0] text-[15px] mt-2">Accede a tu SecondBrain</p>
+            </div>
+
             <div>
-                <InputLabel for="email" value="Email" />
+                <InputLabel for="email" value="Correo electrónico" class="text-[#7B82A0] mb-2 block" />
                 <TextInput
                     id="email"
                     v-model="form.email"
                     type="email"
-                    class="mt-1 block w-full"
+                    class="block w-full bg-[#0F1117] border-[#2E3347] text-[#F0F2F8] focus:border-[#6C63FF] focus:ring-[#6C63FF] rounded-[10px] px-4 py-3"
                     required
                     autofocus
                     autocomplete="username"
+                    placeholder="tu@email.com"
                 />
                 <InputError class="mt-2" :message="form.errors.email" />
             </div>
 
-            <div class="mt-4">
-                <InputLabel for="password" value="Password" />
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <InputLabel for="password" value="Contraseña" class="text-[#7B82A0] mb-0" />
+                    <Link v-if="canResetPassword" :href="route('password.request')" class="text-[13px] text-[#6C63FF] hover:text-[#837BFF] transition-colors font-medium">
+                        ¿Olvidaste tu contraseña?
+                    </Link>
+                </div>
                 <TextInput
                     id="password"
                     v-model="form.password"
                     type="password"
-                    class="mt-1 block w-full"
+                    class="block w-full bg-[#0F1117] border-[#2E3347] text-[#F0F2F8] focus:border-[#6C63FF] focus:ring-[#6C63FF] rounded-[10px] px-4 py-3"
                     required
                     autocomplete="current-password"
+                    placeholder="••••••••"
                 />
                 <InputError class="mt-2" :message="form.errors.password" />
             </div>
 
-            <div class="block mt-4">
-                <label class="flex items-center">
-                    <Checkbox v-model:checked="form.remember" name="remember" />
-                    <span class="ms-2 text-sm text-[#7B82A0]">Remember me</span>
+            <div class="block">
+                <label class="flex items-center cursor-pointer group">
+                    <Checkbox v-model:checked="form.remember" name="remember" class="border-[#2E3347] bg-[#0F1117] text-[#6C63FF] focus:ring-[#6C63FF]" />
+                    <span class="ms-3 text-[14px] text-[#7B82A0] group-hover:text-[#F0F2F8] transition-colors">Mantener sesión iniciada</span>
                 </label>
             </div>
 
-            <div class="flex items-center justify-end mt-4">
-                <Link v-if="canResetPassword" :href="route('password.request')" class="underline text-sm text-[#7B82A0] hover:text-[#F0F2F8] rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6C63FF] focus:ring-offset-[#0F1117]">
-                    Forgot your password?
-                </Link>
-
-                <PrimaryButton class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                    Log in
-                </PrimaryButton>
-            </div>
+            <button type="submit" class="w-full bg-[#6C63FF] hover:bg-[#5A51E6] text-white font-bold text-[16px] py-4 rounded-[12px] shadow-[0_4px_14px_rgba(108,99,255,0.4)] transition-all transform hover:-translate-y-0.5 disabled:opacity-50 mt-2" :disabled="form.processing">
+                <span v-if="form.processing">Iniciando sesión...</span>
+                <span v-else>Iniciar Sesión</span>
+            </button>
         </form>
     </AuthenticationCard>
 </template>
