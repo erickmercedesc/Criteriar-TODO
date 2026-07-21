@@ -30,6 +30,9 @@ Route::middleware([
     Route::post('/api/pomodoro/resume', [\App\Http\Controllers\PomodoroController::class, 'resume'])->name('pomodoro.resume');
     Route::post('/api/pomodoro/stop', [\App\Http\Controllers\PomodoroController::class, 'stop'])->name('pomodoro.stop');
 
+    Route::get('/settings', [\App\Http\Controllers\SettingController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [\App\Http\Controllers\SettingController::class, 'update'])->name('settings.update');
+
     Route::resource('scoring-criteria', \App\Http\Controllers\ScoringCriterionController::class)->except(['create', 'show', 'edit']);
     
     Route::resource('tasks', \App\Http\Controllers\TaskController::class)->except(['create', 'show', 'edit']);

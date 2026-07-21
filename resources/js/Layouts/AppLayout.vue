@@ -18,6 +18,7 @@ const navigation = [
     { name: 'Pomodoro', route: 'pomodoro.index', icon: Timer },
     { name: 'Tareas', route: 'tasks.index', icon: CheckSquare },
     { name: 'Criterios', route: 'scoring-criteria.index', icon: Sliders },
+    { name: 'Configuración', route: 'settings.index', icon: Settings },
 ];
 </script>
 

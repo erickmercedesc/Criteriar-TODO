@@ -114,11 +114,16 @@ const formattedTime = computed(() => {
 
 // Computed properties for UI
 const isFocus = computed(() => state.value.status === 'focus');
-const isBreak = computed(() => state.value.status === 'short_break');
+const isShortBreak = computed(() => state.value.status === 'short_break');
+const isLongBreak = computed(() => state.value.status === 'long_break');
+const isBreak = computed(() => isShortBreak.value || isLongBreak.value);
 const isIdle = computed(() => state.value.status === 'idle');
 const isRunning = computed(() => !isIdle.value && !state.value.is_paused && currentRemaining.value > 0);
 const isPaused = computed(() => state.value.is_paused);
 const isFinished = computed(() => !isIdle.value && currentRemaining.value === 0);
+
+// Focus cycles
+const currentCycle = computed(() => (state.value.focus_cycles % 4) + 1);
 </script>
 
 <template>
@@ -126,9 +131,15 @@ const isFinished = computed(() => !isIdle.value && currentRemaining.value === 0)
 
     <AppLayout title="Pomodoro">
         <template #header>
-            <h2 class="font-semibold text-[22px] text-[#F0F2F8] leading-tight font-inter">
-                Pomodoro Focus
-            </h2>
+            <div class="flex items-center justify-between">
+                <h2 class="font-semibold text-[22px] text-[#F0F2F8] leading-tight font-inter">
+                    Pomodoro Focus
+                </h2>
+                <!-- Cycle Indicator -->
+                <div class="bg-[#1A1D27] border border-[#2E3347] px-4 py-2 rounded-[12px] text-[13px] font-bold text-[#7B82A0]">
+                    Ciclo <span class="text-[#F0F2F8]">{{ currentCycle }}</span> <span class="opacity-50">/ 4</span>
+                </div>
+            </div>
         </template>
 
         <div class="py-12 md:py-16">
@@ -138,23 +149,30 @@ const isFinished = computed(() => !isIdle.value && currentRemaining.value === 0)
                 <div class="bg-[#1A1D27] border border-[#2E3347] rounded-[32px] p-10 md:p-16 flex flex-col items-center justify-center text-center shadow-[0_8px_32px_rgba(0,0,0,0.3)] relative overflow-hidden transition-all duration-500"
                      :class="{
                          'border-[#6C63FF]/50 shadow-[0_0_40px_rgba(108,99,255,0.15)]': isFocus && isRunning,
-                         'border-[#22C55E]/50 shadow-[0_0_40px_rgba(34,197,94,0.15)]': isBreak && isRunning,
+                         'border-[#22C55E]/50 shadow-[0_0_40px_rgba(34,197,94,0.15)]': isShortBreak && isRunning,
+                         'border-[#3B82F6]/50 shadow-[0_0_40px_rgba(59,130,246,0.15)]': isLongBreak && isRunning,
                          'border-[#F59E0B]/50 shadow-[0_0_40px_rgba(245,158,11,0.15)]': isFinished,
                      }">
                     
                     <!-- Ambient glows based on state -->
                     <div v-if="isFocus && isRunning" class="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] bg-[#6C63FF] rounded-full mix-blend-screen filter blur-[150px] opacity-20"></div>
-                    <div v-if="isBreak && isRunning" class="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] bg-[#22C55E] rounded-full mix-blend-screen filter blur-[150px] opacity-20"></div>
+                    <div v-if="isShortBreak && isRunning" class="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] bg-[#22C55E] rounded-full mix-blend-screen filter blur-[150px] opacity-20"></div>
+                    <div v-if="isLongBreak && isRunning" class="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] bg-[#3B82F6] rounded-full mix-blend-screen filter blur-[150px] opacity-20"></div>
 
                     <!-- Status Badge -->
                     <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[13px] font-bold uppercase tracking-widest mb-10 transition-colors z-10"
                          :class="{
                              'bg-[#6C63FF]/10 text-[#6C63FF]': isFocus || isIdle,
-                             'bg-[#22C55E]/10 text-[#22C55E]': isBreak,
+                             'bg-[#22C55E]/10 text-[#22C55E]': isShortBreak,
+                             'bg-[#3B82F6]/10 text-[#3B82F6]': isLongBreak,
                          }">
                         <Brain v-if="isFocus || isIdle" class="w-4 h-4" />
                         <Coffee v-if="isBreak" class="w-4 h-4" />
-                        <span>{{ isBreak ? 'Descanso' : 'Focus Time' }}</span>
+                        <span>
+                            <template v-if="isFocus || isIdle">Focus Time</template>
+                            <template v-else-if="isShortBreak">Descanso Corto</template>
+                            <template v-else-if="isLongBreak">Descanso Largo</template>
+                        </span>
                     </div>
 
                     <!-- Time Display -->
@@ -169,14 +187,14 @@ const isFinished = computed(() => !isIdle.value && currentRemaining.value === 0)
                         <button v-if="isIdle || isFinished" @click="sendAction('start', { phase: 'focus' })" 
                                 class="w-full sm:w-auto bg-[#6C63FF] hover:bg-[#5A51E6] text-white px-8 py-4 rounded-[16px] text-[16px] font-bold transition-all shadow-[0_4px_12px_rgba(108,99,255,0.3)] flex items-center justify-center gap-2">
                             <Brain class="w-5 h-5" />
-                            Empezar Focus (25m)
+                            Empezar Focus
                         </button>
                         
                         <!-- Idle State: Start Break -->
-                        <button v-if="isIdle || isFinished" @click="sendAction('start', { phase: 'short_break' })" 
+                        <button v-if="isIdle || isFinished" @click="sendAction('start', { phase: 'break' })" 
                                 class="w-full sm:w-auto bg-[#2E3347] hover:bg-[#3E445B] text-[#F0F2F8] px-8 py-4 rounded-[16px] text-[16px] font-bold transition-all flex items-center justify-center gap-2 border border-[#7B82A0]/20">
                             <Coffee class="w-5 h-5" />
-                            Descanso (5m)
+                            Empezar Descanso
                         </button>
 
                         <!-- Running State: Pause -->
