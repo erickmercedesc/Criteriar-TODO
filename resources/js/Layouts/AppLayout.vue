@@ -119,6 +119,13 @@ const navigation = [
 
             <!-- MAIN CONTENT AREA -->
             <main class="flex-1 md:pl-[240px] pt-[60px] md:pt-0 pb-[70px] md:pb-0">
+                <!-- Page Heading -->
+                <header v-if="$slots.header" class="bg-[#1A1D27] border-b border-[#2E3347] shadow-sm">
+                    <div class="max-w-[1200px] mx-auto py-4 px-4 sm:px-6 lg:px-8">
+                        <slot name="header" />
+                    </div>
+                </header>
+
                 <slot />
             </main>
 
