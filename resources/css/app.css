@@ -2,6 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+    :root {
+        --color-bg: #0F1117;
+        --color-surface: #1A1D27;
+        --color-surface-2: #22263A;
+        --color-border: #2E3347;
+        --color-text-primary: #F0F2F8;
+        --color-text-muted: #7B82A0;
+        
+        --color-primary: #6C63FF;
+        --color-primary-soft: #6C63FF26;
+        --color-success: #22C55E;
+        --color-warning: #F59E0B;
+        --color-danger: #EF4444;
+        --color-info: #38BDF8;
+    }
+
+    body {
+        @apply bg-[#0F1117] text-[#F0F2F8] antialiased;
+        font-family: 'Inter', sans-serif;
+    }
+}
+
 [x-cloak] {
     display: none;
 }
