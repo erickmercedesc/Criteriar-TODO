@@ -7,6 +7,7 @@ use Inertia\Inertia;
 use App\Models\Task;
 use App\Models\ScoringCriterion;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class DashboardController extends Controller
 {
@@ -15,16 +16,20 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        // 1. All Pending Tasks ordered by score
+        $skippedIds = Cache::get('skipped_tasks', []);
+
+        // 1. All Pending Tasks ordered by score (excluding skipped)
         $pendingTasks = Task::with('criteria')
             ->where('is_completed', false)
+            ->whereNotIn('id', $skippedIds)
             ->withSum('criteria', 'points')
             ->orderByDesc('criteria_sum_points')
             ->orderByDesc('created_at')
             ->get();
 
-        // 2. Pending Tasks Count
-        $pendingCount = $pendingTasks->count();
+        // 2. Pending Tasks Count (Total pending, including skipped, so the user knows they exist)
+        $pendingCount = Task::where('is_completed', false)->count();
+        $skippedCount = count($skippedIds);
 
         // 3. Completed Today Count
         $completedTodayCount = Task::where('is_completed', true)
@@ -39,8 +44,34 @@ class DashboardController extends Controller
             'stats' => [
                 'pending' => $pendingCount,
                 'completedToday' => $completedTodayCount,
+                'skipped' => $skippedCount,
             ],
             'criteria' => $criteria,
         ]);
+    }
+
+    /**
+     * Skip a task by adding it to the cache.
+     */
+    public function skipTask(Task $task)
+    {
+        $skippedIds = Cache::get('skipped_tasks', []);
+        
+        if (!in_array($task->id, $skippedIds)) {
+            $skippedIds[] = $task->id;
+            Cache::put('skipped_tasks', $skippedIds, now()->addDays(7)); // Keep for a week just in case
+        }
+
+        return redirect()->back();
+    }
+
+    /**
+     * Reset the skipped tasks cache.
+     */
+    public function resetSkipped()
+    {
+        Cache::forget('skipped_tasks');
+
+        return redirect()->back();
     }
 }

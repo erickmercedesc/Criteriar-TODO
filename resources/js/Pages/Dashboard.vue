@@ -11,29 +11,21 @@ const props = defineProps({
     criteria: Array,
 });
 
-const skippedTaskIds = ref([]);
-
 const topTask = computed(() => {
-    return props.pendingTasks.find(t => !skippedTaskIds.value.includes(t.id));
+    return props.pendingTasks[0];
 });
 
 // Complete Task from Dashboard
 const completeTask = (task) => {
-    router.patch(route('tasks.toggle', task.id), {}, { 
-        preserveScroll: true,
-        onSuccess: () => {
-            // Vaciar la lista de saltados al completar cualquier tarea
-            skippedTaskIds.value = [];
-        }
-    });
+    router.patch(route('tasks.toggle', task.id), {}, { preserveScroll: true });
 };
 
 const skipTask = (task) => {
-    skippedTaskIds.value.push(task.id);
+    router.patch(route('dashboard.skip', task.id), {}, { preserveScroll: true });
 };
 
 const resetSkipped = () => {
-    skippedTaskIds.value = [];
+    router.post(route('dashboard.reset'), {}, { preserveScroll: true });
 };
 
 // Form for creating tasks from Dashboard
@@ -157,7 +149,7 @@ const submitForm = () => {
                 </div>
 
                 <!-- Empty State (All tasks skipped) -->
-                <div v-else class="bg-[#1A1D27] border border-[#2E3347] rounded-[24px] p-12 flex flex-col items-center text-center shadow-sm">
+                <div v-else-if="stats.skipped > 0" class="bg-[#1A1D27] border border-[#2E3347] rounded-[24px] p-12 flex flex-col items-center text-center shadow-sm">
                     <div class="w-20 h-20 bg-[#F59E0B]/10 rounded-full flex items-center justify-center mb-6">
                         <RotateCcw class="w-10 h-10 text-[#F59E0B]" />
                     </div>
@@ -170,7 +162,7 @@ const submitForm = () => {
                     <button @click="resetSkipped" 
                             class="bg-[#F59E0B] hover:bg-[#F59E0B]/90 text-black px-8 py-4 rounded-[12px] text-[16px] font-bold transition-colors flex items-center gap-2 shadow-[0_4px_12px_rgba(245,158,11,0.2)]">
                         <RotateCcw class="w-5 h-5" />
-                        Reiniciar lista de tareas
+                        Reiniciar lista de tareas ({{ stats.skipped }})
                     </button>
                 </div>
             </div>

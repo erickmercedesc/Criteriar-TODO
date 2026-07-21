@@ -109,6 +109,10 @@ class TaskController extends Controller
             'completed_at' => $isCompleted ? now() : null,
         ]);
 
+        if ($isCompleted) {
+            \Illuminate\Support\Facades\Cache::forget('skipped_tasks');
+        }
+
         return redirect()->back();
     }
 

@@ -19,6 +19,8 @@ Route::middleware([
     'verified',
 ])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    Route::patch('/dashboard/skip/{task}', [\App\Http\Controllers\DashboardController::class, 'skipTask'])->name('dashboard.skip');
+    Route::post('/dashboard/reset-skipped', [\App\Http\Controllers\DashboardController::class, 'resetSkipped'])->name('dashboard.reset');
 
     Route::resource('scoring-criteria', \App\Http\Controllers\ScoringCriterionController::class)->except(['create', 'show', 'edit']);
     
