@@ -14,5 +14,19 @@ use Illuminate\Database\Eloquent\Model;
  */
 class ScoringCriterion extends Model
 {
-    protected $fillable = ['name', 'points', 'color'];
+    protected $fillable = [
+        'name',
+        'points',
+        'color',
+    ];
+
+    /**
+     * Tareas que tienen asignado este criterio.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function tasks()
+    {
+        return $this->belongsToMany(Task::class, 'task_scoring_criteria');
+    }
 }

@@ -6,7 +6,7 @@
 ## Fases Pendientes
 - [ ] Fase 1 — Setup base (Desactivar registro público). *(Omitido temporalmente para avanzar con Phase 3)*
 - [ ] Fase 2 — Migraciones restantes (`tasks`, `debts`, etc).
-- [ ] Fase 4 — Módulo TODO
+- [x] Fase 4 — Módulo TODO
 - [ ] Fase 5 — Módulo Deudas
 - [ ] Fase 6 — Polish
 

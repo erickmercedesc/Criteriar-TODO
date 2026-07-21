@@ -15,7 +15,7 @@ const logout = () => {
 
 const navigation = [
     { name: 'Dashboard', route: 'dashboard', icon: LayoutDashboard },
-    { name: 'Tareas', route: 'dashboard', icon: CheckSquare }, // TODO: update route when tasks are implemented
+    { name: 'Tareas', route: 'tasks.index', icon: CheckSquare },
     { name: 'Criterios', route: 'scoring-criteria.index', icon: Sliders },
     { name: 'Deudas', route: 'dashboard', icon: CreditCard }, // TODO: update route when debts are implemented
 ];
