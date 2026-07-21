@@ -21,4 +21,6 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
+
+    Route::resource('scoring-criteria', \App\Http\Controllers\ScoringCriterionController::class)->except(['create', 'show', 'edit']);
 });
