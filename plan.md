@@ -7,7 +7,6 @@ Sin registro público. Un solo usuario. Sin IA por ahora.
 
 Dos módulos principales:
 1. **TODO con sistema de scoring configurable**
-2. **Gestión de Deudas Pendientes con historial de abonos y recurrencia**
 
 **Stack:** PHP 8.2, Laravel 12, Jetstream (sin Teams), Inertia.js v2, Vue 3, Tailwind CSS.
 
@@ -75,57 +74,6 @@ Una tarea marcada como "Genera dinero" + "Trabajo" = **30 puntos**.
 
 ---
 
-## Módulo 2 — Deudas Pendientes con Recurrencia
-
-### Concepto
-Registrar deudas sin rastrear flujo de caja. El foco es: **¿a quién le debo?** y **¿cuánto me falta pagar?**
-
-Soporte para deudas recurrentes: si un mes no se pagó, la deuda sigue activa
-y aparece acumulada en el siguiente período.
-
-### Base de Datos
-
-#### `debts` — Deudas
-| Campo              | Tipo          | Descripción                                            |
-| ------------------ | ------------- | ------------------------------------------------------ |
-| `id`               | bigint PK     | —                                                      |
-| `creditor`         | string        | A quién se le debe (ej: "Banco Popular", "Claro")      |
-| `type`             | enum          | `credit_card`, `loan`, `service`, `other`              |
-| `total_amount`     | decimal(12,2) | Monto total original de la deuda                       |
-| `is_recurring`     | boolean       | Si se genera cargo mensual automático                  |
-| `recurring_amount` | decimal(12,2) | Monto del cargo mensual (si es recurrente)             |
-| `due_day`          | integer       | Día del mes en que vence (ej: 15)                      |
-| `status`           | enum          | `active`, `paid`, `overdue`                            |
-| `notes`            | text nullable | Notas opcionales                                       |
-| `created_at`       | timestamp     | —                                                      |
-| `updated_at`       | timestamp     | —                                                      |
-
-#### `debt_payments` — Historial de Abonos
-| Campo          | Tipo          | Descripción                               |
-| -------------- | ------------- | ----------------------------------------- |
-| `id`           | bigint PK     | —                                         |
-| `debt_id`      | bigint FK     | —                                         |
-| `amount`       | decimal(12,2) | Monto del abono                           |
-| `payment_date` | date          | Fecha del pago                            |
-| `period_month` | integer       | Mes al que corresponde el pago (1-12)     |
-| `period_year`  | integer       | Año al que corresponde el pago            |
-| `notes`        | string nullable | Referencia o nota del pago              |
-| `created_at`   | timestamp     | —                                         |
-
-### Lógica de Recurrencia
-- Deudas con `is_recurring = true` generan una obligación mensual.
-- Si el mes ya pasó y no hay pago registrado para ese `period_month/period_year`,
-  la deuda aparece en estado **"En mora"** para ese período.
-- El sistema muestra el mes actual + cualquier mes anterior impago.
-- Al registrar un abono, el usuario indica a qué período corresponde.
-
-### Páginas / Vistas
-- `/debts` — Lista de todas las deudas con estado visual. Resumen: total adeudado, total pagado, balance pendiente.
-- `/debts/create` — Crear nueva deuda.
-- `/debts/{id}` — Detalle de la deuda + historial de pagos + registrar abono.
-
----
-
 ## Estructura de Archivos
 
 ```
@@ -133,15 +81,11 @@ app/
 ├── Models/
 │   ├── User.php
 │   ├── Task.php
-│   ├── ScoringCriterion.php
-│   ├── Debt.php
-│   └── DebtPayment.php
+│   └── ScoringCriterion.php
 ├── Http/
 │   └── Controllers/
 │       ├── TaskController.php
-│       ├── ScoringCriterionController.php
-│       ├── DebtController.php
-│       └── DebtPaymentController.php
+│       └── ScoringCriterionController.php
 └── Actions/
     └── Tasks/
         └── CalculateTaskScore.php
@@ -151,16 +95,10 @@ resources/js/
 │   ├── Tasks/
 │   │   ├── Index.vue
 │   │   └── Create.vue
-│   ├── ScoringCriteria/
-│   │   └── Index.vue
-│   └── Debts/
-│       ├── Index.vue
-│       ├── Create.vue
-│       └── Show.vue
+│   └── ScoringCriteria/
+│       └── Index.vue
 └── Components/
-    ├── TaskCard.vue
-    ├── DebtCard.vue
-    └── PaymentHistoryItem.vue
+    └── TaskCard.vue
 ```
 
 ---
@@ -168,16 +106,13 @@ resources/js/
 ## Orden de Implementación
 
 - [ ] **Fase 1 — Setup base**: Desactivar registro público en Jetstream (solo login).
-- [ ] **Fase 2 — Migraciones**: Crear tablas `scoring_criteria`, `tasks`, `task_scoring_criteria`, `debts`, `debt_payments`.
+- [ ] **Fase 2 — Migraciones**: Crear tablas `scoring_criteria`, `tasks`, `task_scoring_criteria`.
 - [ ] **Fase 3 — Criterios de Scoring**: CRUD completo + UI en `/scoring-criteria`.
 - [ ] **Fase 4 — Módulo TODO**: CRUD de tareas + cálculo de puntaje + ordenamiento + UI.
-- [ ] **Fase 5 — Módulo Deudas**: CRUD de deudas + historial de abonos + lógica de recurrencia + UI.
-- [ ] **Fase 6 — Polish**: Diseño coherente, navegación, responsivo.
+- [ ] **Fase 5 — Polish**: Diseño coherente, navegación, responsivo.
 
 ---
 
 ## Preguntas Pendientes
 
-- **Moneda**: ¿Solo DOP (Pesos Dominicanos) o multi-moneda?
 - **Autenticación**: ¿Mantener el login de Jetstream o algo más simple?
-- **Tarjetas de crédito**: El monto mensual puede variar — ¿se ingresa el abono manualmente cada mes sin asumir un monto fijo?
