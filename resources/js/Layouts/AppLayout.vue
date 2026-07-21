@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { CheckSquare, Sliders, CreditCard, LogOut, Settings, LayoutDashboard } from 'lucide-vue-next';
+import { CheckSquare, Sliders, Timer, LogOut, Settings, LayoutDashboard } from 'lucide-vue-next';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 
