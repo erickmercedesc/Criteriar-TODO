@@ -1,19 +1,39 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import ResponsiveDialog from '@/Components/ResponsiveDialog.vue';
-import { Check, Flame, Trophy, Plus, PartyPopper } from 'lucide-vue-next';
+import { Check, Flame, Trophy, Plus, PartyPopper, FastForward, RotateCcw } from 'lucide-vue-next';
 
 const props = defineProps({
-    topTask: Object,
+    pendingTasks: Array,
     stats: Object,
     criteria: Array,
 });
 
+const skippedTaskIds = ref([]);
+
+const topTask = computed(() => {
+    return props.pendingTasks.find(t => !skippedTaskIds.value.includes(t.id));
+});
+
 // Complete Task from Dashboard
 const completeTask = (task) => {
-    router.patch(route('tasks.toggle', task.id), {}, { preserveScroll: true });
+    router.patch(route('tasks.toggle', task.id), {}, { 
+        preserveScroll: true,
+        onSuccess: () => {
+            // Vaciar la lista de saltados al completar cualquier tarea
+            skippedTaskIds.value = [];
+        }
+    });
+};
+
+const skipTask = (task) => {
+    skippedTaskIds.value.push(task.id);
+};
+
+const resetSkipped = () => {
+    skippedTaskIds.value = [];
 };
 
 // Form for creating tasks from Dashboard
@@ -98,20 +118,28 @@ const submitForm = () => {
                             </span>
                         </div>
                         
-                        <button @click="completeTask(topTask)" 
-                                class="w-full md:w-auto bg-[#6C63FF] hover:bg-[#6C63FF]/90 text-white px-10 py-5 rounded-[16px] text-[18px] font-bold transition-all shadow-lg hover:shadow-[0_0_20px_rgba(108,99,255,0.4)] flex items-center justify-center gap-3 transform hover:-translate-y-1">
-                            <Check class="w-6 h-6" />
-                            ¡Completar Tarea!
-                        </button>
+                        <div class="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 mt-10">
+                            <button @click="completeTask(topTask)" 
+                                    class="w-full md:w-auto bg-[#6C63FF] hover:bg-[#6C63FF]/90 text-white px-10 py-5 rounded-[16px] text-[18px] font-bold transition-all shadow-[0_4px_12px_rgba(108,99,255,0.2)] hover:shadow-[0_0_20px_rgba(108,99,255,0.4)] flex items-center justify-center gap-3 transform hover:-translate-y-1">
+                                <Check class="w-6 h-6" />
+                                ¡Completar Tarea!
+                            </button>
+                            
+                            <button @click="skipTask(topTask)" 
+                                    class="w-full md:w-auto bg-transparent border border-[#2E3347] hover:border-[#7B82A0] text-[#7B82A0] hover:text-[#F0F2F8] px-6 py-5 rounded-[16px] text-[16px] font-semibold transition-all flex items-center justify-center gap-2">
+                                <FastForward class="w-5 h-5" />
+                                Saltar por ahora
+                            </button>
+                        </div>
                         
-                        <div class="mt-6 text-[#7B82A0] text-[14px] font-mono">
+                        <div class="mt-8 text-[#7B82A0] text-[14px] font-mono">
                             Valor total: {{ topTask.criteria_sum_points ?? 0 }} pts
                         </div>
                     </div>
                 </div>
 
-                <!-- Empty State -->
-                <div v-else class="bg-[#1A1D27] border border-[#2E3347] rounded-[24px] p-12 flex flex-col items-center text-center shadow-sm">
+                <!-- Empty State (No tasks at all) -->
+                <div v-else-if="pendingTasks.length === 0" class="bg-[#1A1D27] border border-[#2E3347] rounded-[24px] p-12 flex flex-col items-center text-center shadow-sm">
                     <div class="w-20 h-20 bg-[#22C55E]/10 rounded-full flex items-center justify-center mb-6">
                         <PartyPopper class="w-10 h-10 text-[#22C55E]" />
                     </div>
@@ -125,6 +153,24 @@ const submitForm = () => {
                             class="bg-[#2E3347] hover:bg-[#2E3347]/80 text-[#F0F2F8] px-8 py-4 rounded-[12px] text-[16px] font-semibold transition-colors flex items-center gap-2 border border-[#7B82A0]/30">
                         <Plus class="w-5 h-5" />
                         Agregar nueva tarea
+                    </button>
+                </div>
+
+                <!-- Empty State (All tasks skipped) -->
+                <div v-else class="bg-[#1A1D27] border border-[#2E3347] rounded-[24px] p-12 flex flex-col items-center text-center shadow-sm">
+                    <div class="w-20 h-20 bg-[#F59E0B]/10 rounded-full flex items-center justify-center mb-6">
+                        <RotateCcw class="w-10 h-10 text-[#F59E0B]" />
+                    </div>
+                    
+                    <h2 class="text-[28px] font-bold text-[#F0F2F8] mb-3">Has saltado todas las tareas</h2>
+                    <p class="text-[#7B82A0] text-[16px] mb-10 max-w-[400px]">
+                        Has pospuesto todas tus tareas pendientes por ahora. ¿Listo para volver a la carga?
+                    </p>
+                    
+                    <button @click="resetSkipped" 
+                            class="bg-[#F59E0B] hover:bg-[#F59E0B]/90 text-black px-8 py-4 rounded-[12px] text-[16px] font-bold transition-colors flex items-center gap-2 shadow-[0_4px_12px_rgba(245,158,11,0.2)]">
+                        <RotateCcw class="w-5 h-5" />
+                        Reiniciar lista de tareas
                     </button>
                 </div>
             </div>

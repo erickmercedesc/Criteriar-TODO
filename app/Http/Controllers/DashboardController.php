@@ -15,16 +15,16 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        // 1. Top Task
-        $topTask = Task::with('criteria')
+        // 1. All Pending Tasks ordered by score
+        $pendingTasks = Task::with('criteria')
             ->where('is_completed', false)
             ->withSum('criteria', 'points')
             ->orderByDesc('criteria_sum_points')
             ->orderByDesc('created_at')
-            ->first();
+            ->get();
 
         // 2. Pending Tasks Count
-        $pendingCount = Task::where('is_completed', false)->count();
+        $pendingCount = $pendingTasks->count();
 
         // 3. Completed Today Count
         $completedTodayCount = Task::where('is_completed', true)
@@ -35,7 +35,7 @@ class DashboardController extends Controller
         $criteria = ScoringCriterion::orderBy('name')->get();
 
         return Inertia::render('Dashboard', [
-            'topTask' => $topTask,
+            'pendingTasks' => $pendingTasks,
             'stats' => [
                 'pending' => $pendingCount,
                 'completedToday' => $completedTodayCount,
