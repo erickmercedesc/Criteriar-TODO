@@ -22,6 +22,14 @@ Route::middleware([
     Route::patch('/dashboard/skip/{task}', [\App\Http\Controllers\DashboardController::class, 'skipTask'])->name('dashboard.skip');
     Route::post('/dashboard/reset-skipped', [\App\Http\Controllers\DashboardController::class, 'resetSkipped'])->name('dashboard.reset');
 
+    // Pomodoro
+    Route::get('/pomodoro', [\App\Http\Controllers\PomodoroController::class, 'index'])->name('pomodoro.index');
+    Route::get('/api/pomodoro/state', [\App\Http\Controllers\PomodoroController::class, 'state'])->name('pomodoro.state');
+    Route::post('/api/pomodoro/start', [\App\Http\Controllers\PomodoroController::class, 'start'])->name('pomodoro.start');
+    Route::post('/api/pomodoro/pause', [\App\Http\Controllers\PomodoroController::class, 'pause'])->name('pomodoro.pause');
+    Route::post('/api/pomodoro/resume', [\App\Http\Controllers\PomodoroController::class, 'resume'])->name('pomodoro.resume');
+    Route::post('/api/pomodoro/stop', [\App\Http\Controllers\PomodoroController::class, 'stop'])->name('pomodoro.stop');
+
     Route::resource('scoring-criteria', \App\Http\Controllers\ScoringCriterionController::class)->except(['create', 'show', 'edit']);
     
     Route::resource('tasks', \App\Http\Controllers\TaskController::class)->except(['create', 'show', 'edit']);

@@ -15,6 +15,7 @@ const logout = () => {
 
 const navigation = [
     { name: 'Dashboard', route: 'dashboard', icon: LayoutDashboard },
+    { name: 'Pomodoro', route: 'pomodoro.index', icon: Timer },
     { name: 'Tareas', route: 'tasks.index', icon: CheckSquare },
     { name: 'Criterios', route: 'scoring-criteria.index', icon: Sliders },
 ];
