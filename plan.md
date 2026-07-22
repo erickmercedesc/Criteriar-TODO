@@ -60,10 +60,23 @@ Una tarea marcada como "Genera dinero" + "Trabajo" = **30 puntos**.
 | `task_id`              | bigint FK | —           |
 | `scoring_criterion_id` | bigint FK | —           |
 
+#### `daily_statistics` — Resumen de actividad por día
+| Campo              | Tipo      | Descripción                           |
+| ------------------ | --------- | ------------------------------------- |
+| `id`               | bigint PK | —                                     |
+| `user_id`          | bigint FK | —                                     |
+| `date`             | date      | Fecha del registro                    |
+| `pomodoro_seconds` | integer   | Segundos en fase focus                |
+| `tasks_completed`  | integer   | Tareas marcadas como completadas      |
+| `points_earned`    | integer   | Puntos recolectados                   |
+| `created_at`       | timestamp | —                                     |
+| `updated_at`       | timestamp | —                                     |
+
 ### Páginas / Vistas
-- `/tasks` — Lista de tareas ordenadas por puntaje (mayor primero). La tarea top aparece destacada como **"¿Qué hago ahora?"**.
+- `/tasks` — Lista de tareas ordenadas por puntaje (mayor primero).
 - `/tasks/create` — Crear nueva tarea seleccionando criterios.
 - `/scoring-criteria` — Panel de gestión de criterios (CRUD completo).
+- `/statistics` — Panel de estadísticas diarias e historial (Gráficas).
 
 ### Flujo de uso
 1. El usuario configura sus criterios en `/scoring-criteria`.

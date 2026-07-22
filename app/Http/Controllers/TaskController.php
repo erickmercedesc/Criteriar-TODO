@@ -109,6 +109,13 @@ class TaskController extends Controller
             'completed_at' => $isCompleted ? now() : null,
         ]);
 
+        $userId = auth()->id() ?? 1;
+        $points = $task->criteria()->sum('points');
+        $multiplier = $isCompleted ? 1 : -1;
+
+        \App\Models\DailyStatistic::adjustStat($userId, now()->toDateString(), 'tasks_completed', 1 * $multiplier);
+        \App\Models\DailyStatistic::adjustStat($userId, now()->toDateString(), 'points_earned', $points * $multiplier);
+
         if ($isCompleted) {
             \Illuminate\Support\Facades\Cache::forget('skipped_tasks');
         }

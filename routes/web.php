@@ -43,4 +43,6 @@ Route::middleware([
     
     Route::resource('tasks', \App\Http\Controllers\TaskController::class)->except(['create', 'show', 'edit']);
     Route::patch('tasks/{task}/toggle', [\App\Http\Controllers\TaskController::class, 'toggleComplete'])->name('tasks.toggle');
+
+    Route::get('/statistics', [\App\Http\Controllers\StatisticController::class, 'index'])->name('statistics.index');
 });

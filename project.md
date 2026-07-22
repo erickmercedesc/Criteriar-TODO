@@ -15,3 +15,4 @@
 - La selección de color se hace mediante swatches predefinidos que combinan con la paleta de la aplicación en vez de un input hex libre para asegurar la estética.
 - Se agregó el paquete `lucide-vue-next` para iconografía estándar de la app.
 - Se rediseñó completamente el `AppLayout.vue` y el UI de Autenticación (`Login.vue`, `AuthenticationCard`, etc.) para soportar el diseño responsivo Dark Mode dictado en `style.md` (Sidebar Desktop, Top/Bottom Navigation en Mobile).
+- Se implementó un sistema de Estadísticas Diarias (`daily_statistics`) usando `vue-chartjs` y `chart.js`. Registra tiempo de Pomodoro (Focus) y Tareas Completadas sumando/restando puntos dinámicamente.

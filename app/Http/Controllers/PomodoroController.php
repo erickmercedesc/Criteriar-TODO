@@ -173,6 +173,12 @@ class PomodoroController extends Controller
                 // Silently ignore webhook errors to avoid breaking the timer state
             }
         }
+        
+        if ($state['phase'] === 'focus') {
+            $durationMinutes = (int) Setting::getForUser($userId, 'pomo_time', 25);
+            $durationSeconds = $durationMinutes * 60;
+            \App\Models\DailyStatistic::adjustStat($userId, now()->toDateString(), 'pomodoro_seconds', $durationSeconds);
+        }
 
         $this->advancePhase($state);
         $state['status'] = 'waiting';
