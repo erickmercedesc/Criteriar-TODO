@@ -8,6 +8,7 @@
         
         <!-- PWA Meta Tags -->
         <meta name="theme-color" content="#0B0D14">
+        <link rel="manifest" href="/manifest.json">
         <link rel="apple-touch-icon" href="/icon-192x192.png">
 
         <!-- Fonts -->
