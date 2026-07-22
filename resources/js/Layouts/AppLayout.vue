@@ -124,7 +124,7 @@ const navigation = [
             </header>
 
             <!-- MAIN CONTENT AREA -->
-            <main class="flex-1 md:pl-[240px] md:pt-0 pb-[90px] md:pb-0" :class="showMobileHeader ? 'pt-[60px]' : 'pt-0'">
+            <main class="flex-1 md:pl-[240px] md:pt-0 pb-[110px] md:pb-0" :class="showMobileHeader ? 'pt-[60px]' : 'pt-0'">
                 <!-- Page Heading -->
                 <header v-if="$slots.header" class="sticky z-10 transition-colors" :class="[
                     showMobileHeader 
@@ -140,7 +140,7 @@ const navigation = [
             </main>
 
             <!-- MOBILE BOTTOM NAVIGATION (< 768px) -->
-            <nav class="md:hidden fixed bottom-0 inset-x-0 h-[72px] bg-[#1A1D27] border-t border-[#2E3347] z-20 flex pb-safe">
+            <nav class="md:hidden fixed bottom-0 inset-x-0 min-h-[85px] pt-3 bg-[#1A1D27] border-t border-[#2E3347] z-20 flex pb-safe">
                 <Link
                     v-for="item in navigation"
                     :key="item.name"
