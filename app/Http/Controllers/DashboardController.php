@@ -14,12 +14,12 @@ class DashboardController extends Controller
     /**
      * Display the focused dashboard.
      */
-    public function index()
+    public function index(Request $request)
     {
         $skippedIds = Cache::get('skipped_tasks', []);
 
         // 1. All Pending Tasks ordered by score (excluding skipped)
-        $pendingTasks = Task::with('criteria')
+        $pendingTasks = $request->user()->tasks()->with('criteria')
             ->where('is_completed', false)
             ->whereNotIn('id', $skippedIds)
             ->withSum('criteria', 'points')
@@ -28,16 +28,16 @@ class DashboardController extends Controller
             ->get();
 
         // 2. Pending Tasks Count (Total pending, including skipped, so the user knows they exist)
-        $pendingCount = Task::where('is_completed', false)->count();
+        $pendingCount = $request->user()->tasks()->where('is_completed', false)->count();
         $skippedCount = count($skippedIds);
 
         // 3. Completed Today Count
-        $completedTodayCount = Task::where('is_completed', true)
+        $completedTodayCount = $request->user()->tasks()->where('is_completed', true)
             ->whereDate('completed_at', Carbon::today())
             ->count();
 
         // 4. Criteria (for creating new tasks from dashboard)
-        $criteria = ScoringCriterion::orderBy('name')->get();
+        $criteria = $request->user()->scoringCriteria()->orderBy('name')->get();
 
         return Inertia::render('Dashboard', [
             'pendingTasks' => $pendingTasks,

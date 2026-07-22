@@ -19,7 +19,7 @@ class TaskController extends Controller
     {
         $showCompleted = $request->boolean('completed', false);
 
-        $tasks = Task::with('criteria')
+        $tasks = $request->user()->tasks()->with('criteria')
             ->withSum('criteria', 'points')
             ->when($showCompleted, function ($query) {
                 return $query->where('is_completed', true);
@@ -32,7 +32,7 @@ class TaskController extends Controller
             ->orderBy('created_at')
             ->get();
 
-        $allCriteria = ScoringCriterion::orderBy('name')->get();
+        $allCriteria = $request->user()->scoringCriteria()->orderBy('name')->get();
 
         return Inertia::render('Tasks/Index', [
             'tasks' => $tasks,
@@ -57,7 +57,7 @@ class TaskController extends Controller
             'criteria_ids.*' => 'exists:scoring_criteria,id',
         ]);
 
-        $task = Task::create([
+        $task = $request->user()->tasks()->create([
             'title' => $validated['title'],
             'is_completed' => false,
         ]);
@@ -78,6 +78,8 @@ class TaskController extends Controller
      */
     public function update(Request $request, Task $task)
     {
+        abort_if($task->user_id !== $request->user()->id, 403);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'criteria_ids' => 'nullable|array',
@@ -102,6 +104,8 @@ class TaskController extends Controller
      */
     public function toggleComplete(Task $task)
     {
+        abort_if($task->user_id !== auth()->id(), 403);
+
         $isCompleted = !$task->is_completed;
         
         $task->update([
@@ -109,7 +113,7 @@ class TaskController extends Controller
             'completed_at' => $isCompleted ? now() : null,
         ]);
 
-        $userId = auth()->id() ?? 1;
+        $userId = auth()->id();
         $points = $task->criteria()->sum('points');
         $multiplier = $isCompleted ? 1 : -1;
 
@@ -131,6 +135,8 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
+        abort_if($task->user_id !== auth()->id(), 403);
+
         $task->delete();
 
         return redirect()->back();

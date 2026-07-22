@@ -10,6 +10,7 @@ class Task extends Model
      * @var array
      */
     protected $fillable = [
+        'user_id',
         'title',
         'is_completed',
         'completed_at',
@@ -31,5 +32,15 @@ class Task extends Model
     public function criteria()
     {
         return $this->belongsToMany(ScoringCriterion::class, 'task_scoring_criteria');
+    }
+
+    /**
+     * Obtener el usuario al que pertenece la tarea.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

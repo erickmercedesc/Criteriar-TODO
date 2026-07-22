@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 class ScoringCriterion extends Model
 {
     protected $fillable = [
+        'user_id',
         'name',
         'points',
         'color',
@@ -28,5 +29,15 @@ class ScoringCriterion extends Model
     public function tasks()
     {
         return $this->belongsToMany(Task::class, 'task_scoring_criteria');
+    }
+
+    /**
+     * Obtener el usuario al que pertenece este criterio.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

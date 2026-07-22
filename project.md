@@ -16,3 +16,4 @@
 - Se agregó el paquete `lucide-vue-next` para iconografía estándar de la app.
 - Se rediseñó completamente el `AppLayout.vue` y el UI de Autenticación (`Login.vue`, `AuthenticationCard`, etc.) para soportar el diseño responsivo Dark Mode dictado en `style.md` (Sidebar Desktop, Top/Bottom Navigation en Mobile).
 - Se implementó un sistema de Estadísticas Diarias (`daily_statistics`) usando `vue-chartjs` y `chart.js`. Registra tiempo de Pomodoro (Focus) y Tareas Completadas sumando/restando puntos dinámicamente.
+- **Transición a Multiusuario:** Se agregaron relaciones `user_id` a `tasks` y `scoring_criteria`. Los datos existentes se asignaron al usuario ID 1. Se implementó el listener `SeedDefaultScoringCriteria` para generar criterios base a los nuevos usuarios. Se actualizó Jetstream para permitir registro público y se aislaron todas las consultas en los controladores.

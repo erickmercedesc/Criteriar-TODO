@@ -3,7 +3,7 @@
 ## Descripción General
 
 Aplicación web personal de productividad construida con **Laravel 12 + Inertia.js + Vue.js**.
-Sin registro público. Un solo usuario. Sin IA por ahora.
+Arquitectura multiusuario. Cada usuario tiene sus propias tareas y criterios. Sin IA por ahora.
 
 Dos módulos principales:
 1. **TODO con sistema de scoring configurable**
@@ -37,6 +37,7 @@ Una tarea marcada como "Genera dinero" + "Trabajo" = **30 puntos**.
 | Campo        | Tipo      | Descripción                         |
 | ------------ | --------- | ----------------------------------- |
 | `id`         | bigint PK | —                                   |
+| `user_id`    | bigint FK | Propietario del criterio            |
 | `name`       | string    | Ej: "Genera dinero", "Trabajo"      |
 | `points`     | integer   | Puntos que aporta                   |
 | `color`      | string    | Color visual (hex)                  |
@@ -47,6 +48,7 @@ Una tarea marcada como "Genera dinero" + "Trabajo" = **30 puntos**.
 | Campo          | Tipo      | Descripción                          |
 | -------------- | --------- | ------------------------------------ |
 | `id`           | bigint PK | —                                    |
+| `user_id`      | bigint FK | Propietario de la tarea              |
 | `title`        | string    | Nombre de la tarea                   |
 | `total_score`  | integer   | Puntaje calculado (suma de criterios)|
 | `is_completed` | boolean   | Si está completada                   |
@@ -128,4 +130,4 @@ resources/js/
 
 ## Preguntas Pendientes
 
-- **Autenticación**: ¿Mantener el login de Jetstream o algo más simple?
+- **Autenticación**: Se utiliza Jetstream con registro público para la arquitectura multiusuario.

@@ -66,4 +66,34 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Get the tasks associated with the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    /**
+     * Get the scoring criteria associated with the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function scoringCriteria()
+    {
+        return $this->hasMany(ScoringCriterion::class);
+    }
+
+    /**
+     * Get the daily statistics associated with the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function dailyStatistics()
+    {
+        return $this->hasMany(DailyStatistic::class);
+    }
 }

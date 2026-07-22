@@ -12,7 +12,7 @@ class PomodoroController extends Controller
 {
     private function getCacheKey()
     {
-        $userId = auth()->id() ?? 1;
+        $userId = auth()->id();
         return "pomodoro_state_{$userId}";
     }
 
@@ -21,7 +21,7 @@ class PomodoroController extends Controller
         $skippedIds = Cache::get('skipped_tasks', []);
 
         // Get Top Task
-        $topTask = Task::with('criteria')
+        $topTask = auth()->user()->tasks()->with('criteria')
             ->where('is_completed', false)
             ->whereNotIn('id', $skippedIds)
             ->withSum('criteria', 'points')
@@ -42,7 +42,7 @@ class PomodoroController extends Controller
 
     public function start(Request $request)
     {
-        $userId = auth()->id() ?? 1;
+        $userId = auth()->id();
         $state = $this->getState();
         $phase = $state['phase'];
 
@@ -67,7 +67,7 @@ class PomodoroController extends Controller
 
     public function skip()
     {
-        $userId = auth()->id() ?? 1;
+        $userId = auth()->id();
         $state = $this->getState();
 
         $this->advancePhase($state);
@@ -153,7 +153,7 @@ class PomodoroController extends Controller
 
     private function getState()
     {
-        $userId = auth()->id() ?? 1;
+        $userId = auth()->id();
         return $this->getStateForUser($userId);
     }
 
