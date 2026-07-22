@@ -119,7 +119,7 @@ const navigation = [
             </header>
 
             <!-- MAIN CONTENT AREA -->
-            <main class="flex-1 md:pl-[240px] pt-[60px] md:pt-0 pb-[70px] md:pb-0">
+            <main class="flex-1 md:pl-[240px] pt-[60px] md:pt-0 pb-[90px] md:pb-0">
                 <!-- Page Heading -->
                 <header v-if="$slots.header" class="bg-[#1A1D27] border-b border-[#2E3347] shadow-sm">
                     <div class="max-w-[1200px] mx-auto py-4 px-4 sm:px-6 lg:px-8">
@@ -131,16 +131,16 @@ const navigation = [
             </main>
 
             <!-- MOBILE BOTTOM NAVIGATION (< 768px) -->
-            <nav class="md:hidden fixed bottom-0 inset-x-0 h-[56px] bg-[#1A1D27] border-t border-[#2E3347] z-20 flex pb-safe">
+            <nav class="md:hidden fixed bottom-0 inset-x-0 h-[72px] bg-[#1A1D27] border-t border-[#2E3347] z-20 flex pb-safe">
                 <Link
                     v-for="item in navigation"
                     :key="item.name"
                     :href="route(item.route)"
-                    class="flex-1 flex flex-col items-center justify-center gap-1 transition-colors"
+                    class="flex-1 flex flex-col items-center justify-center gap-1.5 transition-colors"
                     :class="route().current(item.route) ? 'text-[#6C63FF]' : 'text-[#7B82A0] hover:text-[#F0F2F8]'"
                 >
-                    <component :is="item.icon" class="w-[20px] h-[20px]" />
-                    <span class="text-[10px] font-medium">{{ item.name }}</span>
+                    <component :is="item.icon" class="w-[22px] h-[22px]" />
+                    <span class="text-[11px] font-medium">{{ item.name }}</span>
                 </Link>
             </nav>
         </div>
