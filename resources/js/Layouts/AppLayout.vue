@@ -97,7 +97,7 @@ const navigation = [
             </aside>
 
             <!-- MOBILE TOP BAR (< 768px) -->
-            <header v-if="showMobileHeader" class="md:hidden fixed top-0 inset-x-0 h-[60px] bg-[#1A1D27] border-b border-[#2E3347] z-20 flex items-center justify-between px-4">
+            <header v-if="showMobileHeader" class="md:hidden fixed top-0 inset-x-0 h-[60px] bg-[#1A1D27] z-20 flex items-center justify-between px-4">
                 <Link :href="route('dashboard')" class="flex items-center gap-2">
                     <div class="w-8 h-8 bg-[#6C63FF] rounded-[8px] flex items-center justify-center">
                         <span class="text-white font-inter font-bold text-sm tracking-tight">SB</span>
