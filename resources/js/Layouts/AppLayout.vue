@@ -7,6 +7,10 @@ import DropdownLink from '@/Components/DropdownLink.vue';
 
 defineProps({
     title: String,
+    showMobileHeader: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const logout = () => {
@@ -93,7 +97,7 @@ const navigation = [
             </aside>
 
             <!-- MOBILE TOP BAR (< 768px) -->
-            <header class="md:hidden fixed top-0 inset-x-0 h-[60px] bg-[#1A1D27] border-b border-[#2E3347] z-20 flex items-center justify-between px-4">
+            <header v-if="showMobileHeader" class="md:hidden fixed top-0 inset-x-0 h-[60px] bg-[#1A1D27] border-b border-[#2E3347] z-20 flex items-center justify-between px-4">
                 <Link :href="route('dashboard')" class="flex items-center gap-2">
                     <div class="w-8 h-8 bg-[#6C63FF] rounded-[8px] flex items-center justify-center">
                         <span class="text-white font-inter font-bold text-sm tracking-tight">SB</span>
@@ -119,7 +123,7 @@ const navigation = [
             </header>
 
             <!-- MAIN CONTENT AREA -->
-            <main class="flex-1 md:pl-[240px] pt-[60px] md:pt-0 pb-[90px] md:pb-0">
+            <main class="flex-1 md:pl-[240px] md:pt-0 pb-[90px] md:pb-0" :class="showMobileHeader ? 'pt-[60px]' : 'pt-0'">
                 <!-- Page Heading -->
                 <header v-if="$slots.header" class="bg-[#1A1D27] border-b border-[#2E3347] shadow-sm">
                     <div class="max-w-[1200px] mx-auto py-4 px-4 sm:px-6 lg:px-8">

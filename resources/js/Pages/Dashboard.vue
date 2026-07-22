@@ -64,7 +64,7 @@ const submitForm = () => {
 </script>
 
 <template>
-    <AppLayout title="Dashboard">
+    <AppLayout title="Dashboard" show-mobile-header>
         <template #header>
             <h2 class="font-semibold text-[22px] text-[#F0F2F8] leading-tight font-inter">
                 Command Center
