@@ -83,16 +83,8 @@ class PomodoroController extends Controller
 
     public function nextPhase()
     {
-        // Called when timer reaches 0
-        $state = $this->getState();
-        if ($state['status'] === 'running') {
-            $this->advancePhase($state);
-            $state['status'] = 'waiting';
-            $state['ends_at'] = null;
-            $state['remaining_seconds'] = 0;
-            Cache::put($this->getCacheKey(), $state);
-        }
-        return response()->json($state);
+        // Deprecated: State transitions happen automatically in getState()
+        return response()->json($this->getState());
     }
 
     private function advancePhase(&$state)
@@ -146,9 +138,46 @@ class PomodoroController extends Controller
         return response()->json($state);
     }
 
+    public function getStateForUser($userId)
+    {
+        $cacheKey = "pomodoro_state_{$userId}";
+        $state = Cache::get($cacheKey, $this->getEmptyState());
+        
+        if ($state['status'] === 'running' && $state['ends_at'] <= time()) {
+            $this->processCompletion($state, $userId);
+            Cache::put($cacheKey, $state);
+        }
+
+        return $state;
+    }
+
     private function getState()
     {
-        return Cache::get($this->getCacheKey(), $this->getEmptyState());
+        $userId = auth()->id() ?? 1;
+        return $this->getStateForUser($userId);
+    }
+
+    private function processCompletion(&$state, $userId)
+    {
+        $webhookUrl = Setting::getForUser($userId, 'pomodoro_webhook', null);
+        
+        if ($webhookUrl) {
+            try {
+                \Illuminate\Support\Facades\Http::timeout(3)->post($webhookUrl, [
+                    'event' => 'pomodoro_finished',
+                    'phase' => $state['phase'],
+                    'user_id' => $userId,
+                    'completed_at' => now()->toIso8601String(),
+                ]);
+            } catch (\Exception $e) {
+                // Silently ignore webhook errors to avoid breaking the timer state
+            }
+        }
+
+        $this->advancePhase($state);
+        $state['status'] = 'waiting';
+        $state['ends_at'] = null;
+        $state['remaining_seconds'] = 0;
     }
 
     private function getEmptyState()

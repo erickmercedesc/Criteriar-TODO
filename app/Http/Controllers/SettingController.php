@@ -16,6 +16,7 @@ class SettingController extends Controller
             'pomo_time' => Setting::getForUser($userId, 'pomo_time', 25),
             'short_break_time' => Setting::getForUser($userId, 'short_break_time', 5),
             'long_break_time' => Setting::getForUser($userId, 'long_break_time', 15),
+            'pomodoro_webhook' => Setting::getForUser($userId, 'pomodoro_webhook', ''),
         ];
 
         return Inertia::render('Settings/Index', [
@@ -31,6 +32,7 @@ class SettingController extends Controller
             'pomo_time' => 'required|integer|min:1|max:120',
             'short_break_time' => 'required|integer|min:1|max:60',
             'long_break_time' => 'required|integer|min:1|max:60',
+            'pomodoro_webhook' => 'nullable|url|max:2048',
         ]);
 
         foreach ($validated as $key => $value) {

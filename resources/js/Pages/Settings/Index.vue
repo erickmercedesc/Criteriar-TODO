@@ -12,6 +12,7 @@ const form = useForm({
     pomo_time: props.settings.pomo_time,
     short_break_time: props.settings.short_break_time,
     long_break_time: props.settings.long_break_time,
+    pomodoro_webhook: props.settings.pomodoro_webhook,
 });
 
 const submit = () => {
@@ -88,6 +89,19 @@ const submit = () => {
                                     <input type="number" v-model="form.long_break_time" min="1" max="60"
                                         class="w-full bg-[#0F1117] border-[#2E3347] text-[#F0F2F8] focus:border-[#3B82F6] focus:ring-[#3B82F6] rounded-[12px] px-4 py-3 font-mono text-[16px]" />
                                     <div v-if="form.errors.long_break_time" class="text-red-500 text-[12px] mt-1">{{ form.errors.long_break_time }}</div>
+                                </div>
+                            </div>
+
+                            <!-- Webhook URL -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                                <div class="md:col-span-1">
+                                    <label class="block text-[14px] font-bold text-[#F0F2F8] mb-1">Webhook URL</label>
+                                    <p class="text-[12px] text-[#7B82A0]">Se ejecutará al terminar el temporizador.</p>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <input type="url" v-model="form.pomodoro_webhook" placeholder="https://..."
+                                        class="w-full bg-[#0F1117] border-[#2E3347] text-[#F0F2F8] focus:border-[#6C63FF] focus:ring-[#6C63FF] rounded-[12px] px-4 py-3 font-mono text-[14px]" />
+                                    <div v-if="form.errors.pomodoro_webhook" class="text-red-500 text-[12px] mt-1">{{ form.errors.pomodoro_webhook }}</div>
                                 </div>
                             </div>
 

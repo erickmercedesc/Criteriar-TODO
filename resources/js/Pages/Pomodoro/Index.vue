@@ -64,7 +64,7 @@ const updateLocalTime = () => {
             if (currentRemaining.value > 0) {
                 // Just hit zero
                 playDing();
-                sendAction('next-phase'); // Call the backend to advance phase automatically
+                fetchState(); // Force a sync so the backend intercepts expiration
             }
             currentRemaining.value = 0;
         } else {
