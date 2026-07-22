@@ -19,8 +19,8 @@
         --color-info: #38BDF8;
     }
 
-    body {
-        @apply bg-[#0F1117] text-[#F0F2F8] antialiased;
+    html, body {
+        @apply bg-[#0F1117] text-[#F0F2F8] antialiased overscroll-none;
         font-family: 'Inter', sans-serif;
     }
 }
