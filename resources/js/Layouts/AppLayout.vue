@@ -125,7 +125,7 @@ const navigation = [
             <!-- MAIN CONTENT AREA -->
             <main class="flex-1 md:pl-[240px] md:pt-0 pb-[90px] md:pb-0" :class="showMobileHeader ? 'pt-[60px]' : 'pt-0'">
                 <!-- Page Heading -->
-                <header v-if="$slots.header" class="bg-[#1A1D27] border-b border-[#2E3347] shadow-sm">
+                <header v-if="$slots.header" :class="[showMobileHeader ? 'bg-[#1A1D27] border-b border-[#2E3347] shadow-sm' : 'bg-transparent pt-2 md:pt-0 md:bg-[#1A1D27] md:border-b md:border-[#2E3347] md:shadow-sm']">
                     <div class="max-w-[1200px] mx-auto py-4 px-4 sm:px-6 lg:px-8">
                         <slot name="header" />
                     </div>
