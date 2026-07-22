@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Play, Pause, Square, Coffee, Brain, ArrowRight, Flame } from 'lucide-vue-next';
+import { Play, Pause, Square, Coffee, Brain, ArrowRight, Flame, SkipForward } from 'lucide-vue-next';
 import axios from 'axios';
 
 const props = defineProps({
@@ -211,9 +211,16 @@ const currentCycle = computed(() => (state.value.focus_cycles % 4) + 1);
                             Reanudar
                         </button>
 
+                        <!-- Skip Stage (Only visible when active or paused, but not finished/idle) -->
+                        <button v-if="!isIdle && !isFinished" @click="sendAction('start', { phase: isFocus ? 'break' : 'focus' })" 
+                                class="w-full sm:w-auto bg-transparent border border-[#7B82A0]/30 hover:bg-[#7B82A0]/10 text-[#7B82A0] hover:text-[#F0F2F8] px-6 py-4 rounded-[16px] text-[16px] font-bold transition-all flex items-center justify-center gap-2">
+                            <SkipForward class="w-5 h-5" />
+                            Omitir
+                        </button>
+
                         <!-- Always show stop if not idle -->
                         <button v-if="!isIdle" @click="sendAction('stop')" 
-                                class="w-full sm:w-auto bg-transparent border border-[#EF4444]/50 hover:bg-[#EF4444]/10 text-[#EF4444] px-6 py-4 rounded-[16px] text-[16px] font-bold transition-all flex items-center justify-center gap-2 ml-0 sm:ml-2">
+                                class="w-full sm:w-auto bg-transparent border border-[#EF4444]/50 hover:bg-[#EF4444]/10 text-[#EF4444] px-6 py-4 rounded-[16px] text-[16px] font-bold transition-all flex items-center justify-center gap-2">
                             <Square class="w-5 h-5" />
                             Detener
                         </button>
