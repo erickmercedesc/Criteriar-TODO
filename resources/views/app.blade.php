@@ -5,6 +5,10 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        
+        <!-- PWA Meta Tags -->
+        <meta name="theme-color" content="#0B0D14">
+        <link rel="apple-touch-icon" href="/icon-192x192.png">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
