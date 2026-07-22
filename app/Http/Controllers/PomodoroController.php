@@ -43,48 +43,82 @@ class PomodoroController extends Controller
     public function start(Request $request)
     {
         $userId = auth()->id() ?? 1;
-        $phase = $request->input('phase', 'focus'); // 'focus' or 'break'
         $state = $this->getState();
+        $phase = $state['phase'];
 
         if ($phase === 'focus') {
             $durationMinutes = (int) Setting::getForUser($userId, 'pomo_time', 25);
-            $newStatus = 'focus';
+        } else if ($phase === 'long_break') {
+            $durationMinutes = (int) Setting::getForUser($userId, 'long_break_time', 15);
         } else {
-            // It's a break
-            $state['focus_cycles']++;
-            
-            if ($state['focus_cycles'] % 4 === 0) {
-                $durationMinutes = (int) Setting::getForUser($userId, 'long_break_time', 15);
-                $newStatus = 'long_break';
-            } else {
-                $durationMinutes = (int) Setting::getForUser($userId, 'short_break_time', 5);
-                $newStatus = 'short_break';
-            }
+            $durationMinutes = (int) Setting::getForUser($userId, 'short_break_time', 5);
         }
 
         $durationSeconds = $durationMinutes * 60;
 
-        $state['status'] = $newStatus;
+        $state['status'] = 'running';
         $state['ends_at'] = now()->addSeconds($durationSeconds)->timestamp;
         $state['remaining_seconds'] = $durationSeconds;
-        $state['is_paused'] = false;
 
         Cache::put($this->getCacheKey(), $state);
 
         return response()->json($state);
     }
 
+    public function skip()
+    {
+        $userId = auth()->id() ?? 1;
+        $state = $this->getState();
+
+        $this->advancePhase($state);
+        
+        // If we skip, we just wait for the user to start the new phase
+        $state['status'] = 'waiting';
+        $state['ends_at'] = null;
+        $state['remaining_seconds'] = 0;
+
+        Cache::put($this->getCacheKey(), $state);
+        return response()->json($state);
+    }
+
+    public function nextPhase()
+    {
+        // Called when timer reaches 0
+        $state = $this->getState();
+        if ($state['status'] === 'running') {
+            $this->advancePhase($state);
+            $state['status'] = 'waiting';
+            $state['ends_at'] = null;
+            $state['remaining_seconds'] = 0;
+            Cache::put($this->getCacheKey(), $state);
+        }
+        return response()->json($state);
+    }
+
+    private function advancePhase(&$state)
+    {
+        if ($state['phase'] === 'focus') {
+            // Finished a focus, so we increment cycle and decide next break
+            $state['focus_cycles']++;
+            if ($state['focus_cycles'] % 4 === 0) {
+                $state['phase'] = 'long_break';
+            } else {
+                $state['phase'] = 'short_break';
+            }
+        } else {
+            // Finished a break, next is focus
+            $state['phase'] = 'focus';
+        }
+    }
+
     public function pause()
     {
         $state = $this->getState();
 
-        if ($state['status'] !== 'idle' && !$state['is_paused']) {
-            // Calculate remaining seconds
+        if ($state['status'] === 'running') {
             $remaining = max(0, $state['ends_at'] - now()->timestamp);
-            
-            $state['is_paused'] = true;
+            $state['status'] = 'paused';
             $state['remaining_seconds'] = $remaining;
-            
             Cache::put($this->getCacheKey(), $state);
         }
 
@@ -95,10 +129,9 @@ class PomodoroController extends Controller
     {
         $state = $this->getState();
 
-        if ($state['status'] !== 'idle' && $state['is_paused']) {
-            $state['is_paused'] = false;
+        if ($state['status'] === 'paused') {
+            $state['status'] = 'running';
             $state['ends_at'] = now()->addSeconds($state['remaining_seconds'])->timestamp;
-            
             Cache::put($this->getCacheKey(), $state);
         }
 
@@ -121,10 +154,10 @@ class PomodoroController extends Controller
     private function getEmptyState()
     {
         return [
-            'status' => 'idle',
+            'phase' => 'focus', // 'focus', 'short_break', 'long_break'
+            'status' => 'waiting', // 'waiting', 'running', 'paused'
             'ends_at' => null,
             'remaining_seconds' => 0,
-            'is_paused' => false,
             'focus_cycles' => 0,
         ];
     }

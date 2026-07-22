@@ -29,6 +29,8 @@ Route::middleware([
     Route::post('/api/pomodoro/pause', [\App\Http\Controllers\PomodoroController::class, 'pause'])->name('pomodoro.pause');
     Route::post('/api/pomodoro/resume', [\App\Http\Controllers\PomodoroController::class, 'resume'])->name('pomodoro.resume');
     Route::post('/api/pomodoro/stop', [\App\Http\Controllers\PomodoroController::class, 'stop'])->name('pomodoro.stop');
+    Route::post('/api/pomodoro/skip', [\App\Http\Controllers\PomodoroController::class, 'skip'])->name('pomodoro.skip');
+    Route::post('/api/pomodoro/next-phase', [\App\Http\Controllers\PomodoroController::class, 'nextPhase'])->name('pomodoro.nextPhase');
 
     Route::get('/settings', [\App\Http\Controllers\SettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [\App\Http\Controllers\SettingController::class, 'update'])->name('settings.update');

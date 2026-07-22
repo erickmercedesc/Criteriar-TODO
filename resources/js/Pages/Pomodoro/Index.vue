@@ -46,28 +46,30 @@ const playDing = () => {
 };
 
 const updateLocalTime = () => {
-    if (state.value.status === 'idle') {
-        currentRemaining.value = 25 * 60; // default visual for idle
+    if (state.value.status === 'waiting') {
+        currentRemaining.value = state.value.remaining_seconds || (state.value.phase === 'focus' ? 25 * 60 : (state.value.phase === 'long_break' ? 15 * 60 : 5 * 60)); // fallback visual
         return;
     }
 
-    if (state.value.is_paused) {
+    if (state.value.status === 'paused') {
         currentRemaining.value = state.value.remaining_seconds;
         return;
     }
 
-    const now = Math.floor(Date.now() / 1000);
-    const diff = state.value.ends_at - now;
+    if (state.value.status === 'running') {
+        const now = Math.floor(Date.now() / 1000);
+        const diff = state.value.ends_at - now;
 
-    if (diff <= 0) {
-        if (currentRemaining.value > 0) {
-            // Just hit zero
-            playDing();
-            fetchState(); // Re-sync to confirm it's actually over
+        if (diff <= 0) {
+            if (currentRemaining.value > 0) {
+                // Just hit zero
+                playDing();
+                sendAction('next-phase'); // Call the backend to advance phase automatically
+            }
+            currentRemaining.value = 0;
+        } else {
+            currentRemaining.value = diff;
         }
-        currentRemaining.value = 0;
-    } else {
-        currentRemaining.value = diff;
     }
 };
 
@@ -83,7 +85,10 @@ const fetchState = async () => {
 
 const sendAction = async (action, data = {}) => {
     try {
-        const response = await axios.post(route(`pomodoro.${action}`), data);
+        // If action includes a dash, we must use route helpers carefully or just let it map via route name
+        // However, route name 'pomodoro.nextPhase' maps to '/api/pomodoro/next-phase'
+        const routeName = action === 'next-phase' ? 'pomodoro.nextPhase' : `pomodoro.${action}`;
+        const response = await axios.post(route(routeName), data);
         state.value = response.data;
         updateLocalTime();
     } catch (error) {
@@ -92,11 +97,8 @@ const sendAction = async (action, data = {}) => {
 };
 
 onMounted(() => {
-    // Run local countdown every second
     localTimer = setInterval(updateLocalTime, 1000);
     updateLocalTime();
-
-    // Silent poll every 15 seconds to sync state from backend
     pollTimer = setInterval(fetchState, 15000);
 });
 
@@ -113,14 +115,14 @@ const formattedTime = computed(() => {
 });
 
 // Computed properties for UI
-const isFocus = computed(() => state.value.status === 'focus');
-const isShortBreak = computed(() => state.value.status === 'short_break');
-const isLongBreak = computed(() => state.value.status === 'long_break');
+const isFocus = computed(() => state.value.phase === 'focus');
+const isShortBreak = computed(() => state.value.phase === 'short_break');
+const isLongBreak = computed(() => state.value.phase === 'long_break');
 const isBreak = computed(() => isShortBreak.value || isLongBreak.value);
-const isIdle = computed(() => state.value.status === 'idle');
-const isRunning = computed(() => !isIdle.value && !state.value.is_paused && currentRemaining.value > 0);
-const isPaused = computed(() => state.value.is_paused);
-const isFinished = computed(() => !isIdle.value && currentRemaining.value === 0);
+
+const isWaiting = computed(() => state.value.status === 'waiting');
+const isRunning = computed(() => state.value.status === 'running');
+const isPaused = computed(() => state.value.status === 'paused');
 
 // Focus cycles
 const currentCycle = computed(() => (state.value.focus_cycles % 4) + 1);
@@ -177,24 +179,25 @@ const currentCycle = computed(() => (state.value.focus_cycles % 4) + 1);
 
                     <!-- Time Display -->
                     <div class="text-[80px] md:text-[120px] font-bold text-[#F0F2F8] leading-none tracking-tighter mb-12 font-mono z-10">
-                        {{ isIdle ? '25:00' : formattedTime }}
+                        {{ formattedTime }}
                     </div>
 
                     <!-- Controls -->
                     <div class="flex flex-wrap items-center justify-center gap-4 z-10 w-full">
                         
-                        <!-- Idle State: Start Focus -->
-                        <button v-if="isIdle || isFinished" @click="sendAction('start', { phase: 'focus' })" 
+                        <!-- Waiting State: Start Phase -->
+                        <button v-if="isWaiting" @click="sendAction('start')" 
                                 class="w-full sm:w-auto bg-[#6C63FF] hover:bg-[#5A51E6] text-white px-8 py-4 rounded-[16px] text-[16px] font-bold transition-all shadow-[0_4px_12px_rgba(108,99,255,0.3)] flex items-center justify-center gap-2">
-                            <Brain class="w-5 h-5" />
-                            Empezar Focus
+                            <Brain v-if="isFocus" class="w-5 h-5" />
+                            <Coffee v-if="isBreak" class="w-5 h-5" />
+                            Empezar {{ isFocus ? 'Focus' : (isShortBreak ? 'Descanso Corto' : 'Descanso Largo') }}
                         </button>
                         
-                        <!-- Idle State: Start Break -->
-                        <button v-if="isIdle || isFinished" @click="sendAction('start', { phase: 'break' })" 
-                                class="w-full sm:w-auto bg-[#2E3347] hover:bg-[#3E445B] text-[#F0F2F8] px-8 py-4 rounded-[16px] text-[16px] font-bold transition-all flex items-center justify-center gap-2 border border-[#7B82A0]/20">
-                            <Coffee class="w-5 h-5" />
-                            Empezar Descanso
+                        <!-- Skip State (Omitir) -->
+                        <button v-if="isWaiting" @click="sendAction('skip')" 
+                                class="w-full sm:w-auto bg-transparent border border-[#7B82A0]/30 hover:bg-[#7B82A0]/10 text-[#7B82A0] hover:text-[#F0F2F8] px-8 py-4 rounded-[16px] text-[16px] font-bold transition-all flex items-center justify-center gap-2">
+                            <SkipForward class="w-5 h-5" />
+                            Omitir
                         </button>
 
                         <!-- Running State: Pause -->
@@ -205,21 +208,21 @@ const currentCycle = computed(() => (state.value.focus_cycles % 4) + 1);
                         </button>
 
                         <!-- Paused State: Resume -->
-                        <button v-if="isPaused && !isFinished" @click="sendAction('resume')" 
+                        <button v-if="isPaused" @click="sendAction('resume')" 
                                 class="w-full sm:w-auto bg-[#22C55E] hover:bg-[#16A34A] text-white px-10 py-5 rounded-[16px] text-[18px] font-bold transition-all shadow-[0_4px_12px_rgba(34,197,94,0.3)] flex items-center justify-center gap-2 transform hover:-translate-y-1">
                             <Play class="w-6 h-6" />
                             Reanudar
                         </button>
 
-                        <!-- Skip Stage (Only visible when active or paused, but not finished/idle) -->
-                        <button v-if="!isIdle && !isFinished" @click="sendAction('start', { phase: isFocus ? 'break' : 'focus' })" 
+                        <!-- Skip Stage while running/paused -->
+                        <button v-if="!isWaiting" @click="sendAction('skip')" 
                                 class="w-full sm:w-auto bg-transparent border border-[#7B82A0]/30 hover:bg-[#7B82A0]/10 text-[#7B82A0] hover:text-[#F0F2F8] px-6 py-4 rounded-[16px] text-[16px] font-bold transition-all flex items-center justify-center gap-2">
                             <SkipForward class="w-5 h-5" />
                             Omitir
                         </button>
 
-                        <!-- Always show stop if not idle -->
-                        <button v-if="!isIdle" @click="sendAction('stop')" 
+                        <!-- Always show stop if not waiting -->
+                        <button v-if="!isWaiting" @click="sendAction('stop')" 
                                 class="w-full sm:w-auto bg-transparent border border-[#EF4444]/50 hover:bg-[#EF4444]/10 text-[#EF4444] px-6 py-4 rounded-[16px] text-[16px] font-bold transition-all flex items-center justify-center gap-2">
                             <Square class="w-5 h-5" />
                             Detener
