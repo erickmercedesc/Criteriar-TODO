@@ -26,7 +26,7 @@ class PomodoroController extends Controller
             ->whereNotIn('id', $skippedIds)
             ->withSum('criteria', 'points')
             ->orderByDesc('criteria_sum_points')
-            ->orderByDesc('created_at')
+            ->orderBy('created_at')
             ->first();
 
         return Inertia::render('Pomodoro/Index', [

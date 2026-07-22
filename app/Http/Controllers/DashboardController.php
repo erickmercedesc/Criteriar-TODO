@@ -24,7 +24,7 @@ class DashboardController extends Controller
             ->whereNotIn('id', $skippedIds)
             ->withSum('criteria', 'points')
             ->orderByDesc('criteria_sum_points')
-            ->orderByDesc('created_at')
+            ->orderBy('created_at')
             ->get();
 
         // 2. Pending Tasks Count (Total pending, including skipped, so the user knows they exist)

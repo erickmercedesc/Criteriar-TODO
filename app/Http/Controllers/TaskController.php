@@ -29,7 +29,7 @@ class TaskController extends Controller
             // Orders by the sum calculated by withSum
             ->orderByDesc('criteria_sum_points')
             // Fallback order by newest
-            ->orderByDesc('created_at')
+            ->orderBy('created_at')
             ->get();
 
         $allCriteria = ScoringCriterion::orderBy('name')->get();
