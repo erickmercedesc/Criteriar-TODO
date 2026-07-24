@@ -17,31 +17,40 @@ const currentRemaining = ref(props.initialState.remaining_seconds || 0);
 let localTimer = null;
 let pollTimer = null;
 
-// Audio context for "Ding" sound
+// Audio instance for the alarm sound
+let alarmAudio = null;
+
+/**
+ * Initializes the audio element on user interaction to prepare for playback.
+ * @returns {void}
+ */
+const initAudio = () => {
+    if (!alarmAudio) {
+        alarmAudio = new Audio('/alarm.wav');
+        // Preload to ensure it is ready when the timer finishes
+        alarmAudio.load();
+    }
+};
+
+/**
+ * Plays the alarm.wav sound from the public directory.
+ * @returns {void}
+ */
 const playDing = () => {
     try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if (!alarmAudio) initAudio();
         
-        const playNote = (freq, startTime, duration) => {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
-            
-            gain.gain.setValueAtTime(0, ctx.currentTime + startTime);
-            gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + startTime + 0.05);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + duration);
-            
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start(ctx.currentTime + startTime);
-            osc.stop(ctx.currentTime + startTime + duration);
-        };
-
-        playNote(880, 0, 0.5); // A5
-        playNote(1108.73, 0.2, 0.6); // C#6
+        // Reset time in case it is already playing
+        alarmAudio.currentTime = 0;
+        const playPromise = alarmAudio.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                console.error("Audio playback failed or blocked", error);
+            });
+        }
     } catch (e) {
-        console.error("Audio not supported or blocked");
+        console.error("Audio playback failed", e);
     }
 };
 
@@ -83,8 +92,23 @@ const fetchState = async () => {
     }
 };
 
+/**
+ * Sends a control action to the Pomodoro backend (start, pause, resume, skip, stop).
+ * @param {string} action - The action to perform.
+ * @param {Object} data - Additional data for the request.
+ * @returns {Promise<void>}
+ */
 const sendAction = async (action, data = {}) => {
     try {
+        // Initialize audio on first user gesture
+        initAudio();
+
+        // Stop the alarm if it's currently ringing
+        if (alarmAudio) {
+            alarmAudio.pause();
+            alarmAudio.currentTime = 0;
+        }
+
         // If action includes a dash, we must use route helpers carefully or just let it map via route name
         // However, route name 'pomodoro.nextPhase' maps to '/api/pomodoro/next-phase'
         const routeName = action === 'next-phase' ? 'pomodoro.nextPhase' : `pomodoro.${action}`;
