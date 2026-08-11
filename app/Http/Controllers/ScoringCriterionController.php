@@ -33,6 +33,7 @@ class ScoringCriterionController extends Controller
             ],
             'points' => 'required|integer|min:-100|max:100',
             'color' => 'required|string|size:7|starts_with:#',
+            'is_complex_marker' => 'boolean',
         ]);
 
         $request->user()->scoringCriteria()->create($validated);
@@ -56,6 +57,7 @@ class ScoringCriterionController extends Controller
             ],
             'points' => 'required|integer|min:-100|max:100',
             'color' => 'required|string|size:7|starts_with:#',
+            'is_complex_marker' => 'boolean',
         ]);
 
         $scoringCriterion->update($validated);

@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import ResponsiveDialog from '@/Components/ResponsiveDialog.vue';
-import { Plus, Edit2, Trash2 } from 'lucide-vue-next';
+import { Plus, Edit2, Trash2, AlertCircle } from 'lucide-vue-next';
 
 const props = defineProps({
     criteria: Array,
@@ -41,6 +41,7 @@ const form = useForm({
     name: '',
     points: 10,
     color: '#6C63FF',
+    is_complex_marker: false,
 });
 
 const isDialogOpen = ref(false);
@@ -60,6 +61,7 @@ const openEditDialog = (criterion) => {
     form.name = criterion.name;
     form.points = criterion.points;
     form.color = criterion.color;
+    form.is_complex_marker = !!criterion.is_complex_marker;
     dialogMode.value = 'edit';
     isDialogOpen.value = true;
 };
@@ -118,8 +120,9 @@ const deleteCriterion = (criterion) => {
                         </thead>
                         <tbody class="divide-y divide-[#2E3347]">
                             <tr v-for="criterion in criteria" :key="criterion.id" class="group hover:bg-[#22263A] transition-colors">
-                                <td class="px-6 py-4 whitespace-nowrap text-[15px] text-[#F0F2F8] font-medium">
+                                <td class="px-6 py-4 whitespace-nowrap text-[15px] text-[#F0F2F8] font-medium flex items-center gap-2">
                                     {{ criterion.name }}
+                                    <AlertCircle v-if="criterion.is_complex_marker" class="w-4 h-4 text-[#F59E0B]" title="Marca tareas como complejas" />
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-[16px] text-[#F0F2F8] font-mono font-medium">
                                     {{ criterion.points > 0 ? '+' : '' }}{{ criterion.points }} pts
@@ -156,7 +159,10 @@ const deleteCriterion = (criterion) => {
                                  :style="{ backgroundColor: `${criterion.color}33`, color: criterion.color }">
                                 {{ criterion.points > 0 ? '+' : '' }}{{ criterion.points }} pts
                             </div>
-                            <div class="text-[15px] text-[#F0F2F8] font-medium">{{ criterion.name }}</div>
+                            <div class="text-[15px] text-[#F0F2F8] font-medium flex items-center gap-2">
+                                {{ criterion.name }}
+                                <AlertCircle v-if="criterion.is_complex_marker" class="w-4 h-4 text-[#F59E0B]" title="Marca tareas como complejas" />
+                            </div>
                         </div>
                         <div class="flex items-center gap-4">
                             <button @click="openEditDialog(criterion)" class="text-[#38BDF8] hover:opacity-80">
@@ -213,6 +219,16 @@ const deleteCriterion = (criterion) => {
                             </button>
                         </div>
                         <div v-if="form.errors.color" class="text-[#EF4444] text-[11px] mt-1">{{ form.errors.color }}</div>
+                    </div>
+
+                    <!-- Es Compleja -->
+                    <div class="mb-6">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" v-model="form.is_complex_marker" class="w-4 h-4 text-[#6C63FF] bg-[#0F1117] border-[#2E3347] rounded focus:ring-[#6C63FF] focus:ring-offset-[#1A1D27]">
+                            <span class="text-[13px] text-[#F0F2F8]">Este criterio marca tareas como complejas</span>
+                        </label>
+                        <p class="text-[11px] text-[#7B82A0] mt-1 ml-6">El Pomodoro te preguntará qué hacer al finalizar ciclos en tareas con este criterio.</p>
+                        <div v-if="form.errors.is_complex_marker" class="text-[#EF4444] text-[11px] mt-1">{{ form.errors.is_complex_marker }}</div>
                     </div>
 
                     <!-- Acciones -->

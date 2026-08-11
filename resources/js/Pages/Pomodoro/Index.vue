@@ -1,8 +1,9 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Play, Pause, Square, Coffee, Brain, ArrowRight, Flame, SkipForward } from 'lucide-vue-next';
+import ResponsiveDialog from '@/Components/ResponsiveDialog.vue';
+import { Play, Pause, Square, Coffee, Brain, ArrowRight, Flame, SkipForward, AlertCircle } from 'lucide-vue-next';
 import axios from 'axios';
 
 const props = defineProps({
@@ -12,6 +13,8 @@ const props = defineProps({
 
 const state = ref(props.initialState);
 const currentRemaining = ref(props.initialState.remaining_seconds || 0);
+
+const showComplexTaskModal = ref(false);
 
 // Timer and Polling references
 let localTimer = null;
@@ -73,7 +76,15 @@ const updateLocalTime = () => {
             if (currentRemaining.value > 0) {
                 // Just hit zero
                 playDing();
-                fetchState(); // Force a sync so the backend intercepts expiration
+                
+                const wasFocus = state.value.phase === 'focus';
+                const isComplex = props.topTask && props.topTask.criteria && props.topTask.criteria.some(c => c.is_complex_marker);
+                
+                fetchState().then(() => {
+                    if (wasFocus && isComplex) {
+                        showComplexTaskModal.value = true;
+                    }
+                }); // Force a sync so the backend intercepts expiration
             }
             currentRemaining.value = 0;
         } else {
@@ -117,6 +128,25 @@ const sendAction = async (action, data = {}) => {
         updateLocalTime();
     } catch (error) {
         console.error(`Failed to ${action} pomodoro`, error);
+    }
+};
+
+const skipComplexTask = async () => {
+    if (!props.topTask) {
+        showComplexTaskModal.value = false;
+        return;
+    }
+    
+    try {
+        await axios.post(route('pomodoro.skipTask'), {
+            task_id: props.topTask.id
+        });
+        
+        // Reload to get the new topTask from backend
+        router.reload({ only: ['topTask', 'initialState'] });
+        showComplexTaskModal.value = false;
+    } catch (error) {
+        console.error("Failed to skip complex task", error);
     }
 };
 
@@ -284,5 +314,35 @@ const currentCycle = computed(() => (state.value.focus_cycles % 4) + 1);
 
             </div>
         </div>
+
+        <!-- Complex Task Interruption Modal -->
+        <ResponsiveDialog :show="showComplexTaskModal" @close="() => {}" maxWidth="sm">
+            <div class="p-6 md:p-8 text-center relative overflow-hidden">
+                <div class="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[#F59E0B] opacity-5 mix-blend-screen filter blur-[80px] pointer-events-none"></div>
+                
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-[#F59E0B]/10 mb-6 relative z-10 border border-[#F59E0B]/20">
+                    <AlertCircle class="h-8 w-8 text-[#F59E0B]" />
+                </div>
+                
+                <h3 class="text-[22px] font-bold text-[#F0F2F8] mb-3 font-inter relative z-10">
+                    Ciclo Completado
+                </h3>
+                
+                <p class="text-[15px] text-[#7B82A0] mb-8 relative z-10 leading-relaxed">
+                    Estás trabajando en una tarea marcada como compleja. ¿Deseas continuar con ella en el siguiente ciclo o prefieres pasar a otra cosa?
+                </p>
+                
+                <div class="flex flex-col gap-3 justify-center relative z-10">
+                    <button @click="showComplexTaskModal = false" class="w-full px-4 py-3.5 bg-[#6C63FF] text-white text-[15px] font-bold rounded-[12px] hover:bg-[#5A51E6] transition-all shadow-[0_4px_12px_rgba(108,99,255,0.25)] flex items-center justify-center gap-2">
+                        <Brain class="w-5 h-5" />
+                        Continuar con esta tarea
+                    </button>
+                    <button @click="skipComplexTask" class="w-full px-4 py-3.5 bg-transparent border border-[#2E3347] text-[#F0F2F8] text-[15px] font-bold rounded-[12px] hover:bg-[#2E3347]/50 transition-colors flex items-center justify-center gap-2">
+                        <SkipForward class="w-5 h-5" />
+                        Pasar a la siguiente tarea
+                    </button>
+                </div>
+            </div>
+        </ResponsiveDialog>
     </AppLayout>
 </template>

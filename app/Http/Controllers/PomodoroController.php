@@ -81,6 +81,25 @@ class PomodoroController extends Controller
         return response()->json($state);
     }
 
+    public function skipTask(Request $request)
+    {
+        $validated = $request->validate([
+            'task_id' => 'required|integer|exists:tasks,id',
+        ]);
+
+        $skippedIds = Cache::get('skipped_tasks', []);
+        if (!in_array($validated['task_id'], $skippedIds)) {
+            $skippedIds[] = $validated['task_id'];
+            Cache::put('skipped_tasks', $skippedIds, now()->addDay());
+        }
+
+        // Return current state so frontend can update topTask implicitly (since topTask is fetched on load)
+        // Wait, Pomodoro/Index.vue fetches topTask on initial load, but the API `/pomodoro/state` just returns state.
+        // Actually, if we skip a task, we need the frontend to get the new topTask. Let's return the state, but 
+        // the frontend can just reload the page using Inertia.
+        return response()->json($this->getState());
+    }
+
     public function nextPhase()
     {
         // Deprecated: State transitions happen automatically in getState()

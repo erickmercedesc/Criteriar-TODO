@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $color
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property bool $is_complex_marker
  */
 class ScoringCriterion extends Model
 {
@@ -19,6 +20,11 @@ class ScoringCriterion extends Model
         'name',
         'points',
         'color',
+        'is_complex_marker',
+    ];
+
+    protected $casts = [
+        'is_complex_marker' => 'boolean',
     ];
 
     /**
