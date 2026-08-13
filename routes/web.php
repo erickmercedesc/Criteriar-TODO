@@ -44,6 +44,13 @@ Route::middleware([
     Route::get('/settings', [\App\Http\Controllers\SettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [\App\Http\Controllers\SettingController::class, 'update'])->name('settings.update');
 
+    Route::post('/user/api-token', function (\Illuminate\Http\Request $request) {
+        $request->user()->forceFill([
+            'api_token' => \Illuminate\Support\Str::random(60),
+        ])->save();
+        return back()->with('status', 'api-token-generated');
+    })->name('user.api-token.store');
+
     Route::resource('scoring-criteria', \App\Http\Controllers\ScoringCriterionController::class)->except(['create', 'show', 'edit']);
     
     Route::resource('tasks', \App\Http\Controllers\TaskController::class)->except(['create', 'show', 'edit']);
