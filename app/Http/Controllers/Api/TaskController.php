@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Task;
 use Illuminate\Http\Request;
+use OpenApi\Attributes as OA;
 
 /**
  * Task API Controller
@@ -13,12 +14,24 @@ use Illuminate\Http\Request;
  */
 class TaskController extends Controller
 {
-    /**
-     * Display a listing of the user's tasks.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
+    #[OA\Get(
+        path: '/api/tasks',
+        summary: 'Listar Tareas',
+        security: [['apiAuth' => []]],
+        tags: ['Tasks'],
+        parameters: [
+            new OA\Parameter(
+                name: 'completed',
+                in: 'query',
+                required: false,
+                description: 'Filtrar por completadas (1 o true) o pendientes (0 o false)',
+                schema: new OA\Schema(type: 'boolean')
+            )
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Lista de tareas del usuario', content: new OA\JsonContent())
+        ]
+    )]
     public function index(Request $request)
     {
         $showCompleted = $request->boolean('completed', false);
@@ -39,12 +52,26 @@ class TaskController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created task.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
+    #[OA\Post(
+        path: '/api/tasks',
+        summary: 'Crear Tarea',
+        security: [['apiAuth' => []]],
+        tags: ['Tasks'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['title'],
+                properties: [
+                    new OA\Property(property: 'title', type: 'string', example: 'Nueva tarea importante'),
+                    new OA\Property(property: 'criteria_ids', type: 'array', items: new OA\Items(type: 'integer'), example: [1, 2])
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Tarea creada', content: new OA\JsonContent()),
+            new OA\Response(response: 422, description: 'Error de validación')
+        ]
+    )]
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -71,13 +98,19 @@ class TaskController extends Controller
         ], 201);
     }
 
-    /**
-     * Display the specified task.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Task  $task
-     * @return \Illuminate\Http\JsonResponse
-     */
+    #[OA\Get(
+        path: '/api/tasks/{task}',
+        summary: 'Ver Tarea',
+        security: [['apiAuth' => []]],
+        tags: ['Tasks'],
+        parameters: [
+            new OA\Parameter(name: 'task', in: 'path', required: true, description: 'ID de la tarea', schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Detalle de la tarea', content: new OA\JsonContent()),
+            new OA\Response(response: 404, description: 'No encontrada')
+        ]
+    )]
     public function show(Request $request, Task $task)
     {
         abort_if($task->user_id !== $request->user()->id, 403, 'Unauthorized action.');
@@ -90,13 +123,29 @@ class TaskController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified task.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Task  $task
-     * @return \Illuminate\Http\JsonResponse
-     */
+    #[OA\Put(
+        path: '/api/tasks/{task}',
+        summary: 'Actualizar Tarea',
+        security: [['apiAuth' => []]],
+        tags: ['Tasks'],
+        parameters: [
+            new OA\Parameter(name: 'task', in: 'path', required: true, description: 'ID de la tarea', schema: new OA\Schema(type: 'integer'))
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'title', type: 'string', example: 'Tarea actualizada'),
+                    new OA\Property(property: 'is_completed', type: 'boolean', example: true),
+                    new OA\Property(property: 'criteria_ids', type: 'array', items: new OA\Items(type: 'integer'), example: [1])
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Tarea actualizada', content: new OA\JsonContent()),
+            new OA\Response(response: 404, description: 'No encontrada')
+        ]
+    )]
     public function update(Request $request, Task $task)
     {
         abort_if($task->user_id !== $request->user()->id, 403, 'Unauthorized action.');
@@ -147,13 +196,19 @@ class TaskController extends Controller
         ]);
     }
 
-    /**
-     * Remove the specified task.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Task  $task
-     * @return \Illuminate\Http\JsonResponse
-     */
+    #[OA\Delete(
+        path: '/api/tasks/{task}',
+        summary: 'Eliminar Tarea',
+        security: [['apiAuth' => []]],
+        tags: ['Tasks'],
+        parameters: [
+            new OA\Parameter(name: 'task', in: 'path', required: true, description: 'ID de la tarea', schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Tarea eliminada'),
+            new OA\Response(response: 404, description: 'No encontrada')
+        ]
+    )]
     public function destroy(Request $request, Task $task)
     {
         abort_if($task->user_id !== $request->user()->id, 403, 'Unauthorized action.');

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ScoringCriterion;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use OpenApi\Attributes as OA;
 
 /**
  * ScoringCriterion API Controller
@@ -14,12 +15,15 @@ use Illuminate\Validation\Rule;
  */
 class ScoringCriterionController extends Controller
 {
-    /**
-     * Display a listing of the user's scoring criteria.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
+    #[OA\Get(
+        path: '/api/scoring-criteria',
+        summary: 'Listar Criterios',
+        security: [['apiAuth' => []]],
+        tags: ['Scoring Criteria'],
+        responses: [
+            new OA\Response(response: 200, description: 'Lista de criterios de puntuación', content: new OA\JsonContent())
+        ]
+    )]
     public function index(Request $request)
     {
         $criteria = $request->user()->scoringCriteria()->orderByDesc('points')->get();
@@ -29,12 +33,28 @@ class ScoringCriterionController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created scoring criterion.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
+    #[OA\Post(
+        path: '/api/scoring-criteria',
+        summary: 'Crear Criterio',
+        security: [['apiAuth' => []]],
+        tags: ['Scoring Criteria'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['name', 'points', 'color'],
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', example: 'Ejercicio'),
+                    new OA\Property(property: 'points', type: 'integer', example: 10),
+                    new OA\Property(property: 'color', type: 'string', example: '#22C55E'),
+                    new OA\Property(property: 'is_complex_marker', type: 'boolean', example: false)
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Criterio creado', content: new OA\JsonContent()),
+            new OA\Response(response: 422, description: 'Error de validación')
+        ]
+    )]
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -57,13 +77,19 @@ class ScoringCriterionController extends Controller
         ], 201);
     }
 
-    /**
-     * Display the specified scoring criterion.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\ScoringCriterion  $scoringCriterion
-     * @return \Illuminate\Http\JsonResponse
-     */
+    #[OA\Get(
+        path: '/api/scoring-criteria/{criterion}',
+        summary: 'Ver Criterio',
+        security: [['apiAuth' => []]],
+        tags: ['Scoring Criteria'],
+        parameters: [
+            new OA\Parameter(name: 'criterion', in: 'path', required: true, description: 'ID del criterio', schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Detalle del criterio', content: new OA\JsonContent()),
+            new OA\Response(response: 404, description: 'No encontrado')
+        ]
+    )]
     public function show(Request $request, ScoringCriterion $scoringCriterion)
     {
         abort_if($scoringCriterion->user_id !== $request->user()->id, 403, 'Unauthorized action.');
@@ -73,13 +99,30 @@ class ScoringCriterionController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified scoring criterion.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\ScoringCriterion  $scoringCriterion
-     * @return \Illuminate\Http\JsonResponse
-     */
+    #[OA\Put(
+        path: '/api/scoring-criteria/{criterion}',
+        summary: 'Actualizar Criterio',
+        security: [['apiAuth' => []]],
+        tags: ['Scoring Criteria'],
+        parameters: [
+            new OA\Parameter(name: 'criterion', in: 'path', required: true, description: 'ID del criterio', schema: new OA\Schema(type: 'integer'))
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', example: 'Ejercicio intenso'),
+                    new OA\Property(property: 'points', type: 'integer', example: 20),
+                    new OA\Property(property: 'color', type: 'string', example: '#22C55E'),
+                    new OA\Property(property: 'is_complex_marker', type: 'boolean', example: false)
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Criterio actualizado', content: new OA\JsonContent()),
+            new OA\Response(response: 404, description: 'No encontrado')
+        ]
+    )]
     public function update(Request $request, ScoringCriterion $scoringCriterion)
     {
         abort_if($scoringCriterion->user_id !== $request->user()->id, 403, 'Unauthorized action.');
@@ -105,13 +148,19 @@ class ScoringCriterionController extends Controller
         ]);
     }
 
-    /**
-     * Remove the specified scoring criterion.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\ScoringCriterion  $scoringCriterion
-     * @return \Illuminate\Http\JsonResponse
-     */
+    #[OA\Delete(
+        path: '/api/scoring-criteria/{criterion}',
+        summary: 'Eliminar Criterio',
+        security: [['apiAuth' => []]],
+        tags: ['Scoring Criteria'],
+        parameters: [
+            new OA\Parameter(name: 'criterion', in: 'path', required: true, description: 'ID del criterio', schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Criterio eliminado'),
+            new OA\Response(response: 404, description: 'No encontrado')
+        ]
+    )]
     public function destroy(Request $request, ScoringCriterion $scoringCriterion)
     {
         abort_if($scoringCriterion->user_id !== $request->user()->id, 403, 'Unauthorized action.');
