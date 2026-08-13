@@ -7,6 +7,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Task;
 use App\Models\Setting;
+use App\Jobs\SendPomodoroPushNotification;
 
 class PomodoroController extends Controller
 {
@@ -61,6 +62,9 @@ class PomodoroController extends Controller
         $state['remaining_seconds'] = $durationSeconds;
 
         Cache::put($this->getCacheKey(), $state);
+
+        SendPomodoroPushNotification::dispatch($userId, $state['ends_at'], $state['phase'])
+            ->delay(now()->addSeconds($durationSeconds));
 
         return response()->json($state);
     }
@@ -144,6 +148,9 @@ class PomodoroController extends Controller
             $state['status'] = 'running';
             $state['ends_at'] = now()->addSeconds($state['remaining_seconds'])->timestamp;
             Cache::put($this->getCacheKey(), $state);
+
+            SendPomodoroPushNotification::dispatch(auth()->id(), $state['ends_at'], $state['phase'])
+                ->delay(now()->addSeconds($state['remaining_seconds']));
         }
 
         return response()->json($state);

@@ -37,6 +37,10 @@ Route::middleware([
     Route::post('/api/pomodoro/skip-task', [\App\Http\Controllers\PomodoroController::class, 'skipTask'])->name('pomodoro.skipTask');
     Route::post('/api/pomodoro/next-phase', [\App\Http\Controllers\PomodoroController::class, 'nextPhase'])->name('pomodoro.nextPhase');
 
+    // Push Subscriptions
+    Route::post('/api/push-subscriptions', [\App\Http\Controllers\PushSubscriptionController::class, 'update'])->name('push-subscriptions.update');
+    Route::delete('/api/push-subscriptions', [\App\Http\Controllers\PushSubscriptionController::class, 'destroy'])->name('push-subscriptions.destroy');
+
     Route::get('/settings', [\App\Http\Controllers\SettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [\App\Http\Controllers\SettingController::class, 'update'])->name('settings.update');
 

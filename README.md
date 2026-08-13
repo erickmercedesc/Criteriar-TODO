@@ -1,59 +1,75 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SecondBrain
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplicación web personal de productividad (TODO + Puntuación + Pomodoro).
+Construida con Laravel 12 + Inertia.js + Vue.js.
 
-## About Laravel
+## Requisitos Previos
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 8.2+
+- Composer
+- Node.js y npm
+- MySQL / MariaDB (o SQLite si lo configuras)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Instalación y Configuración
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. **Clonar y configurar dependencias:**
+   ```bash
+   composer install
+   npm install
+   ```
 
-## Learning Laravel
+2. **Configurar el entorno (`.env`):**
+   Copia el `.env.example` a `.env` y configura tu base de datos.
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+3. **Base de Datos y Migraciones:**
+   ```bash
+   php artisan migrate
+   ```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Notificaciones Web Push y Colas (Background Jobs)
 
-## Laravel Sponsors
+La aplicación utiliza notificaciones Web Push para avisar cuando termina un Pomodoro o Break, incluso si el celular/PC está bloqueado o la PWA no está activa. Para que esto funcione, se requiere la librería `laravel-notification-channels/webpush` y habilitar el sistema de Colas (Jobs) de Laravel.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 1. Instalar librería de Web Push
+Asegúrate de instalar la librería si aún no lo has hecho:
+```bash
+composer require laravel-notification-channels/webpush
+```
 
-### Premium Partners
+### 2. Generar Claves VAPID
+Ejecuta el siguiente comando para generar las llaves criptográficas VAPID necesarias para firmar las notificaciones push (esto agregará las llaves `VAPID_PUBLIC_KEY` y `VAPID_PRIVATE_KEY` a tu archivo `.env`):
+```bash
+php artisan webpush:vapid
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 3. Configurar las Colas en el `.env`
+Para que los jobs de notificaciones se procesen en segundo plano con el tiempo exacto de retraso (Delayed Jobs), asegúrate de que tu `.env` tenga el driver de colas en `database` (o `redis` si prefieres):
+```env
+QUEUE_CONNECTION=database
+```
 
-## Contributing
+### 4. Lanzar la aplicación y el Worker de Colas
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Para correr la app localmente, necesitas 3 terminales (o procesos):
 
-## Code of Conduct
+**Terminal 1: Servidor PHP**
+```bash
+php artisan serve
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+**Terminal 2: Compilación de Frontend (Vite)**
+```bash
+npm run dev
+```
 
-## Security Vulnerabilities
+**Terminal 3: Worker de Colas (Obligatorio para los Web Push)**
+Para que las notificaciones programadas se envíen al terminar los temporizadores, debes tener corriendo el proceso de colas:
+```bash
+php artisan queue:work
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+> **Nota:** Si las notificaciones no llegan cuando el timer llega a 0, revisa la consola del Worker (`php artisan queue:work`) para ver si el Job falló o si simplemente el worker no estaba encendido.

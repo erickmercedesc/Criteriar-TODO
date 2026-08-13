@@ -103,6 +103,10 @@ const fetchState = async () => {
     }
 };
 
+import { useWebPush } from '@/Composables/useWebPush';
+
+const { initWebPush } = useWebPush();
+
 /**
  * Sends a control action to the Pomodoro backend (start, pause, resume, skip, stop).
  * @param {string} action - The action to perform.
@@ -111,6 +115,10 @@ const fetchState = async () => {
  */
 const sendAction = async (action, data = {}) => {
     try {
+        if (action === 'start') {
+            await initWebPush();
+        }
+
         // Initialize audio on first user gesture
         initAudio();
 

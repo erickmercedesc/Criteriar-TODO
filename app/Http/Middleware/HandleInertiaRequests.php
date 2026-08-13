@@ -37,7 +37,7 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
-            //
+            'vapidPublicKey' => config('webpush.vapid.public_key') ?? env('VAPID_PUBLIC_KEY'),
         ];
     }
 }
