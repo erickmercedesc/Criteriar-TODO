@@ -2,6 +2,11 @@
 
 Bienvenido al sistema SecondBrain. Este archivo contiene las instrucciones necesarias para interactuar con la API REST de esta aplicación.
 
+## Funcionamiento General
+SecondBrain es una aplicación de gestión de tareas gamificada (desarrollada con Laravel, Inertia y Vue PWA). Su objetivo principal es ayudar a los usuarios a organizar su día a día recompensándolos por completar tareas.
+Los usuarios pueden crear tareas (TODOs) y asignarles "Criterios de Puntuación" (Scoring Criteria). Cada criterio tiene un valor en puntos (positivos o negativos). 
+Al completar una tarea, el usuario suma los puntos totales de la tarea a sus estadísticas diarias, fomentando la productividad a través de la gamificación. El sistema también permite marcar ciertos criterios como "complejos" para ayudar al usuario (o a un agente planificador) a equilibrar su carga de trabajo y evitar la fatiga.
+
 ## Autenticación
 La API requiere un token de acceso (Bearer Token).
 Debes enviar el token en la cabecera HTTP de todas tus peticiones:
