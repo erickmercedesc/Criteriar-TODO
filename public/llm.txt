@@ -1,0 +1,45 @@
+# SecondBrain API - Guía para LLMs / Bots
+
+Bienvenido al sistema SecondBrain. Este archivo contiene las instrucciones necesarias para interactuar con la API REST de esta aplicación.
+
+## Autenticación
+La API requiere un token de acceso (Bearer Token).
+Debes enviar el token en la cabecera HTTP de todas tus peticiones:
+`Authorization: Bearer <tu_api_token>`
+
+## Endpoints Principales
+
+La API base se encuentra en `/api`. Todas las respuestas son en formato JSON.
+
+### Tareas (TODOs)
+Las tareas son elementos a realizar que pueden tener uno o más "criterios" asignados. El sistema calcula automáticamente un puntaje (`total_score`) basado en la suma de los puntos de los criterios.
+
+- `GET /api/tasks` : Obtener todas las tareas. Parámetro query opcional: `?completed=1` o `?completed=0`.
+- `POST /api/tasks` : Crear una tarea.
+  - Body: `{"title": "string", "criteria_ids": [1, 2]}`
+- `GET /api/tasks/{id}` : Ver detalle de una tarea.
+- `PUT /api/tasks/{id}` : Actualizar una tarea (marcar como completada).
+  - Body: `{"title": "string", "is_completed": boolean, "criteria_ids": [1, 2]}`
+- `DELETE /api/tasks/{id}` : Eliminar una tarea.
+
+### Criterios de Puntuación (Scoring Criteria)
+Los criterios son etiquetas configurables que otorgan puntos (positivos o negativos) a las tareas a las que son asignados.
+
+- `GET /api/scoring-criteria` : Obtener todos los criterios disponibles.
+- `POST /api/scoring-criteria` : Crear un criterio.
+  - Body: `{"name": "string", "points": integer, "color": "#hex", "is_complex_marker": boolean}`
+- `GET /api/scoring-criteria/{id}` : Ver detalle de un criterio.
+- `PUT /api/scoring-criteria/{id}` : Actualizar un criterio.
+- `DELETE /api/scoring-criteria/{id}` : Eliminar un criterio.
+
+## OpenAPI / Swagger
+Para obtener la especificación OpenAPI (Swagger) completa y dinámica en formato JSON, haz una petición GET a:
+`/docs/api-docs.json` (o la ruta por defecto de Swagger `/api/documentation`).
+
+## Reglas de Negocio a tener en cuenta:
+1. **Completar una Tarea**: Si envías `is_completed: true` en un PUT a una tarea, el sistema automáticamente actualizará las estadísticas diarias del usuario sumándole el puntaje total de esa tarea.
+2. **Tareas Complejas**: Criterios con `is_complex_marker = true` indican que la tarea toma mucho tiempo y puede generar fatiga. Si actúas como un agente planificador, prioriza intercalar tareas complejas con tareas sencillas.
+3. **Manejo de Errores**: Si omites un campo requerido, la API responderá con un código HTTP `422 Unprocessable Entity` y un JSON detallando los errores de validación.
+
+---
+*Proporcionado para sistemas automatizados e integraciones de IA.*
