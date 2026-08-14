@@ -18,10 +18,15 @@ class DashboardController extends Controller
     {
         $skippedIds = Cache::get('skipped_tasks', []);
 
+        $projectId = $request->query('project_id');
+
         // 1. All Pending Tasks ordered by score (excluding skipped)
-        $pendingTasks = $request->user()->tasks()->with('criteria')
+        $pendingTasks = $request->user()->tasks()->with('criteria', 'project')
             ->where('is_completed', false)
             ->whereNotIn('id', $skippedIds)
+            ->when($projectId, function ($query, $projectId) {
+                return $query->where('project_id', $projectId);
+            })
             ->withSum('criteria', 'points')
             ->orderByDesc('criteria_sum_points')
             ->orderBy('created_at')
@@ -39,6 +44,9 @@ class DashboardController extends Controller
         // 4. Criteria (for creating new tasks from dashboard)
         $criteria = $request->user()->scoringCriteria()->orderBy('name')->get();
 
+        // 5. Projects
+        $projects = $request->user()->projects()->orderBy('name')->get();
+
         return Inertia::render('Dashboard', [
             'pendingTasks' => $pendingTasks,
             'stats' => [
@@ -47,6 +55,10 @@ class DashboardController extends Controller
                 'skipped' => $skippedCount,
             ],
             'criteria' => $criteria,
+            'projects' => $projects,
+            'filters' => [
+                'project_id' => $projectId,
+            ],
         ]);
     }
 

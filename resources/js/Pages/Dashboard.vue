@@ -9,7 +9,15 @@ const props = defineProps({
     pendingTasks: Array,
     stats: Object,
     criteria: Array,
+    projects: Array,
+    filters: Object,
 });
+
+const currentContext = ref(props.filters?.project_id || '');
+
+const changeContext = () => {
+    router.get(route('dashboard'), { project_id: currentContext.value }, { preserveState: true });
+};
 
 const topTask = computed(() => {
     return props.pendingTasks[0];
@@ -31,6 +39,7 @@ const resetSkipped = () => {
 // Form for creating tasks from Dashboard
 const form = useForm({
     title: '',
+    project_id: props.filters?.project_id || '',
     criteria_ids: [],
 });
 
@@ -66,9 +75,21 @@ const submitForm = () => {
 <template>
     <AppLayout title="Dashboard" show-mobile-header>
         <template #header>
-            <h2 class="font-semibold text-[22px] text-[#F0F2F8] leading-tight font-inter">
-                Command Center
-            </h2>
+            <div class="flex justify-between items-center">
+                <h2 class="font-semibold text-[22px] text-[#F0F2F8] leading-tight font-inter">
+                    Command Center
+                </h2>
+                <div class="flex items-center gap-2">
+                    <span class="text-[13px] text-[#7B82A0] hidden sm:inline">Contexto:</span>
+                    <select v-model="currentContext" @change="changeContext"
+                            class="bg-[#1A1D27] border border-[#2E3347] text-[#F0F2F8] rounded-[6px] px-3 py-1.5 text-[14px] focus:ring-[#6C63FF] focus:border-[#6C63FF]">
+                        <option value="">Global (Todos)</option>
+                        <option v-for="p in projects" :key="p.id" :value="p.id">
+                            {{ p.name }}
+                        </option>
+                    </select>
+                </div>
+            </div>
         </template>
 
         <div class="py-8 md:py-12">
@@ -103,6 +124,10 @@ const submitForm = () => {
                         </h1>
                         
                         <div class="flex flex-wrap justify-center gap-2 mb-10">
+                            <span v-if="topTask.project" class="inline-flex items-center px-3 py-1 rounded-[8px] text-[12px] font-semibold border"
+                                  :style="{ backgroundColor: `${topTask.project.color}15`, color: topTask.project.color, borderColor: `${topTask.project.color}30` }">
+                                {{ topTask.project.name }}
+                            </span>
                             <span v-for="criterion in topTask.criteria" :key="criterion.id"
                                   class="inline-flex items-center px-3 py-1 rounded-[8px] text-[12px] font-semibold border"
                                   :style="{ backgroundColor: `${criterion.color}15`, color: criterion.color, borderColor: `${criterion.color}30` }">
@@ -182,6 +207,18 @@ const submitForm = () => {
                                class="w-full bg-[#0F1117] border border-[#2E3347] text-[#F0F2F8] rounded-[6px] px-3 py-2 text-[15px] focus:ring-[#6C63FF] focus:border-[#6C63FF]"
                                placeholder="Ej: Terminar reporte mensual" required>
                         <div v-if="form.errors.title" class="text-[#EF4444] text-[11px] mt-1">{{ form.errors.title }}</div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label for="project" class="block text-[13px] text-[#7B82A0] mb-1">Proyecto</label>
+                        <select id="project" v-model="form.project_id"
+                                class="w-full bg-[#0F1117] border border-[#2E3347] text-[#F0F2F8] rounded-[6px] px-3 py-2 text-[15px] focus:ring-[#6C63FF] focus:border-[#6C63FF]">
+                            <option value="">(Ninguno)</option>
+                            <option v-for="p in projects" :key="p.id" :value="p.id">
+                                {{ p.name }}
+                            </option>
+                        </select>
+                        <div v-if="form.errors.project_id" class="text-[#EF4444] text-[11px] mt-1">{{ form.errors.project_id }}</div>
                     </div>
 
                     <div class="mb-6">

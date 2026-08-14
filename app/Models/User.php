@@ -81,6 +81,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the projects associated with the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function projects()
+    {
+        return $this->hasMany(Project::class);
+    }
+
+    /**
      * Get the scoring criteria associated with the user.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany

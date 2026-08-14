@@ -10,4 +10,5 @@ Route::middleware('auth:api')->name('api.')->group(function () {
 
     Route::apiResource('tasks', \App\Http\Controllers\Api\TaskController::class);
     Route::apiResource('scoring-criteria', \App\Http\Controllers\Api\ScoringCriterionController::class);
+    Route::apiResource('projects', \App\Http\Controllers\Api\ProjectController::class);
 });

@@ -4,7 +4,8 @@ Bienvenido al sistema SecondBrain. Este archivo contiene las instrucciones neces
 
 ## Funcionamiento General
 SecondBrain es una aplicación de gestión de tareas gamificada (desarrollada con Laravel, Inertia y Vue PWA). Su objetivo principal es ayudar a los usuarios a organizar su día a día recompensándolos por completar tareas.
-Los usuarios pueden crear tareas (TODOs) y asignarles "Criterios de Puntuación" (Scoring Criteria). Cada criterio tiene un valor en puntos (positivos o negativos). 
+Los usuarios pueden crear Proyectos para agrupar sus tareas. Al trabajar, pueden elegir un contexto "Global" (todas las tareas) o enfocarse en un Proyecto específico.
+Los usuarios pueden crear tareas (TODOs) y asignarles "Criterios de Puntuación" (Scoring Criteria) y opcionalmente a un Proyecto. Cada criterio tiene un valor en puntos (positivos o negativos). 
 Al completar una tarea, el usuario suma los puntos totales de la tarea a sus estadísticas diarias, fomentando la productividad a través de la gamificación. El sistema también permite marcar ciertos criterios como "complejos" para ayudar al usuario (o a un agente planificador) a equilibrar su carga de trabajo y evitar la fatiga.
 
 ## Autenticación
@@ -17,15 +18,25 @@ Debes enviar el token en la cabecera HTTP de todas tus peticiones:
 La API base se encuentra en `/api`. Todas las respuestas son en formato JSON.
 
 ### Tareas (TODOs)
-Las tareas son elementos a realizar que pueden tener uno o más "criterios" asignados. El sistema calcula automáticamente un puntaje (`total_score`) basado en la suma de los puntos de los criterios.
+Las tareas son elementos a realizar que pueden pertenecer a un proyecto y tener uno o más "criterios" asignados. El sistema calcula automáticamente un puntaje (`total_score`) basado en la suma de los puntos de los criterios.
 
-- `GET /api/tasks` : Obtener todas las tareas. Parámetro query opcional: `?completed=1` o `?completed=0`.
+- `GET /api/tasks` : Obtener todas las tareas. Parámetro query opcional: `?completed=1` o `?completed=0`, y `?project_id=1`.
 - `POST /api/tasks` : Crear una tarea.
-  - Body: `{"title": "string", "criteria_ids": [1, 2]}`
+  - Body: `{"title": "string", "project_id": integer|null, "criteria_ids": [1, 2]}`
 - `GET /api/tasks/{id}` : Ver detalle de una tarea.
-- `PUT /api/tasks/{id}` : Actualizar una tarea (marcar como completada).
-  - Body: `{"title": "string", "is_completed": boolean, "criteria_ids": [1, 2]}`
+- `PUT /api/tasks/{id}` : Actualizar una tarea (marcar como completada o cambiar proyecto).
+  - Body: `{"title": "string", "is_completed": boolean, "project_id": integer|null, "criteria_ids": [1, 2]}`
 - `DELETE /api/tasks/{id}` : Eliminar una tarea.
+
+### Proyectos (Projects)
+Los proyectos sirven para agrupar tareas. Los usuarios pueden filtrar sus tareas por proyecto.
+
+- `GET /api/projects` : Obtener todos los proyectos.
+- `POST /api/projects` : Crear un proyecto.
+  - Body: `{"name": "string", "color": "#hex|null"}`
+- `GET /api/projects/{id}` : Ver detalle de un proyecto.
+- `PUT /api/projects/{id}` : Actualizar un proyecto.
+- `DELETE /api/projects/{id}` : Eliminar un proyecto.
 
 ### Criterios de Puntuación (Scoring Criteria)
 Los criterios son etiquetas configurables que otorgan puntos (positivos o negativos) a las tareas a las que son asignados.

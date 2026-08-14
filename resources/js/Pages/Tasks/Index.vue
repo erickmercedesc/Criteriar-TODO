@@ -8,6 +8,7 @@ import { Plus, Edit2, Trash2, Check, Flame, Square, CheckSquare } from 'lucide-v
 const props = defineProps({
     tasks: Array,
     criteria: Array,
+    projects: Array,
     filters: Object,
 });
 
@@ -28,16 +29,29 @@ onUnmounted(() => {
 
 // Filters
 const isShowingCompleted = ref(props.filters.completed);
+const currentProject = ref(props.filters.project_id || '');
+
+const applyFilters = () => {
+    router.get(route('tasks.index'), { 
+        completed: isShowingCompleted.value ? 1 : 0,
+        project_id: currentProject.value
+    }, { preserveState: true });
+};
 
 const toggleFilter = () => {
     isShowingCompleted.value = !isShowingCompleted.value;
-    router.get(route('tasks.index'), { completed: isShowingCompleted.value ? 1 : 0 }, { preserveState: true });
+    applyFilters();
+};
+
+const changeProject = () => {
+    applyFilters();
 };
 
 // Form
 const form = useForm({
     id: null,
     title: '',
+    project_id: '',
     criteria_ids: [],
 });
 
@@ -56,6 +70,7 @@ const openEditDialog = (task) => {
     form.clearErrors();
     form.id = task.id;
     form.title = task.title;
+    form.project_id = task.project_id || '';
     form.criteria_ids = task.criteria.map(c => c.id);
     dialogMode.value = 'edit';
     isDialogOpen.value = true;
@@ -116,7 +131,18 @@ const deleteTask = (task) => {
             <div class="max-w-[1200px] mx-auto sm:px-6 lg:px-8">
                 
                 <!-- Filter Toggle -->
-                <div class="mb-6 flex justify-end px-4 sm:px-0">
+                <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center px-4 sm:px-0 gap-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[13px] text-[#7B82A0]">Proyecto:</span>
+                        <select v-model="currentProject" @change="changeProject"
+                                class="bg-[#1A1D27] border border-[#2E3347] text-[#F0F2F8] rounded-[6px] px-3 py-1.5 text-[14px] focus:ring-[#6C63FF] focus:border-[#6C63FF]">
+                            <option value="">Global (Todos)</option>
+                            <option v-for="p in projects" :key="p.id" :value="p.id">
+                                {{ p.name }}
+                            </option>
+                        </select>
+                    </div>
+
                     <button @click="toggleFilter" class="flex items-center gap-2 text-[14px] font-medium transition-colors"
                             :class="isShowingCompleted ? 'text-[#6C63FF]' : 'text-[#7B82A0] hover:text-[#F0F2F8]'">
                         <CheckSquare class="w-4 h-4" />
@@ -163,6 +189,10 @@ const deleteTask = (task) => {
                                 <!-- Criteria Tags -->
                                 <td class="px-6 py-4">
                                     <div class="flex flex-wrap gap-2">
+                                        <span v-if="task.project" class="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold"
+                                              :style="{ backgroundColor: `${task.project.color}15`, color: task.project.color, borderColor: `${task.project.color}30`, borderWidth: '1px' }">
+                                            {{ task.project.name }}
+                                        </span>
                                         <span v-for="criterion in task.criteria" :key="criterion.id"
                                               class="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold"
                                               :style="{ backgroundColor: `${criterion.color}26`, color: criterion.color }">
@@ -220,6 +250,10 @@ const deleteTask = (task) => {
                                 </div>
 
                                 <div class="flex flex-wrap gap-1.5 mb-3">
+                                    <span v-if="task.project" class="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold border"
+                                          :style="{ backgroundColor: `${task.project.color}15`, color: task.project.color, borderColor: `${task.project.color}30` }">
+                                        {{ task.project.name }}
+                                    </span>
                                     <span v-for="criterion in task.criteria" :key="criterion.id"
                                           class="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold"
                                           :style="{ backgroundColor: `${criterion.color}26`, color: criterion.color }">
@@ -266,6 +300,19 @@ const deleteTask = (task) => {
                                class="w-full bg-[#0F1117] border border-[#2E3347] text-[#F0F2F8] rounded-[6px] px-3 py-2 text-[15px] focus:ring-[#6C63FF] focus:border-[#6C63FF]"
                                placeholder="Ej: Terminar reporte mensual" required>
                         <div v-if="form.errors.title" class="text-[#EF4444] text-[11px] mt-1">{{ form.errors.title }}</div>
+                    </div>
+
+                    <!-- Proyecto -->
+                    <div class="mb-6">
+                        <label for="project" class="block text-[13px] text-[#7B82A0] mb-1">Proyecto</label>
+                        <select id="project" v-model="form.project_id"
+                                class="w-full bg-[#0F1117] border border-[#2E3347] text-[#F0F2F8] rounded-[6px] px-3 py-2 text-[15px] focus:ring-[#6C63FF] focus:border-[#6C63FF]">
+                            <option value="">(Ninguno)</option>
+                            <option v-for="p in projects" :key="p.id" :value="p.id">
+                                {{ p.name }}
+                            </option>
+                        </select>
+                        <div v-if="form.errors.project_id" class="text-[#EF4444] text-[11px] mt-1">{{ form.errors.project_id }}</div>
                     </div>
 
                     <!-- Criterios -->

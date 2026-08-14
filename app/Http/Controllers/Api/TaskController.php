@@ -26,6 +26,13 @@ class TaskController extends Controller
                 required: false,
                 description: 'Filtrar por completadas (1 o true) o pendientes (0 o false)',
                 schema: new OA\Schema(type: 'boolean')
+            ),
+            new OA\Parameter(
+                name: 'project_id',
+                in: 'query',
+                required: false,
+                description: 'Filtrar por ID de proyecto',
+                schema: new OA\Schema(type: 'integer')
             )
         ],
         responses: [
@@ -35,13 +42,17 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $showCompleted = $request->boolean('completed', false);
+        $projectId = $request->query('project_id');
 
-        $tasks = $request->user()->tasks()->with('criteria')
+        $tasks = $request->user()->tasks()->with('criteria', 'project')
             ->withSum('criteria', 'points')
             ->when($showCompleted, function ($query) {
                 return $query->where('is_completed', true);
             }, function ($query) {
                 return $query->where('is_completed', false);
+            })
+            ->when($projectId, function ($query, $projectId) {
+                return $query->where('project_id', $projectId);
             })
             ->orderByDesc('criteria_sum_points')
             ->orderBy('created_at')
@@ -63,6 +74,7 @@ class TaskController extends Controller
                 required: ['title'],
                 properties: [
                     new OA\Property(property: 'title', type: 'string', example: 'Nueva tarea importante'),
+                    new OA\Property(property: 'project_id', type: 'integer', example: 1, nullable: true),
                     new OA\Property(property: 'criteria_ids', type: 'array', items: new OA\Items(type: 'integer'), example: [1, 2])
                 ]
             )
@@ -76,12 +88,14 @@ class TaskController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'project_id' => 'nullable|exists:projects,id',
             'criteria_ids' => 'nullable|array',
             'criteria_ids.*' => 'exists:scoring_criteria,id',
         ]);
 
         $task = $request->user()->tasks()->create([
             'title' => $validated['title'],
+            'project_id' => $validated['project_id'] ?? null,
             'is_completed' => false,
         ]);
 
@@ -137,6 +151,7 @@ class TaskController extends Controller
                 properties: [
                     new OA\Property(property: 'title', type: 'string', example: 'Tarea actualizada'),
                     new OA\Property(property: 'is_completed', type: 'boolean', example: true),
+                    new OA\Property(property: 'project_id', type: 'integer', example: 1, nullable: true),
                     new OA\Property(property: 'criteria_ids', type: 'array', items: new OA\Items(type: 'integer'), example: [1])
                 ]
             )
@@ -153,6 +168,7 @@ class TaskController extends Controller
         $validated = $request->validate([
             'title' => 'sometimes|required|string|max:255',
             'is_completed' => 'sometimes|boolean',
+            'project_id' => 'nullable|exists:projects,id',
             'criteria_ids' => 'nullable|array',
             'criteria_ids.*' => 'exists:scoring_criteria,id',
         ]);
@@ -161,6 +177,10 @@ class TaskController extends Controller
 
         if (isset($validated['title'])) {
             $task->title = $validated['title'];
+        }
+
+        if (array_key_exists('project_id', $validated)) {
+            $task->project_id = $validated['project_id'];
         }
 
         if (array_key_exists('criteria_ids', $validated)) {

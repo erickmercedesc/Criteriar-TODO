@@ -52,6 +52,7 @@ Route::middleware([
     })->name('user.api-token.store');
 
     Route::resource('scoring-criteria', \App\Http\Controllers\ScoringCriterionController::class)->except(['create', 'show', 'edit']);
+    Route::resource('projects', \App\Http\Controllers\ProjectController::class)->except(['create', 'show', 'edit']);
     
     Route::resource('tasks', \App\Http\Controllers\TaskController::class)->except(['create', 'show', 'edit']);
     Route::patch('tasks/{task}/toggle', [\App\Http\Controllers\TaskController::class, 'toggleComplete'])->name('tasks.toggle');

@@ -11,6 +11,7 @@ class Task extends Model
      */
     protected $fillable = [
         'user_id',
+        'project_id',
         'title',
         'is_completed',
         'completed_at',
@@ -42,5 +43,15 @@ class Task extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Obtener el proyecto al que pertenece la tarea.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
     }
 }

@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { CheckSquare, Sliders, Timer, LogOut, Settings, LayoutDashboard, BarChart3 } from 'lucide-vue-next';
+import { CheckSquare, Sliders, Timer, LogOut, Settings, LayoutDashboard, BarChart3, Folder } from 'lucide-vue-next';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 
@@ -22,6 +22,7 @@ const navigation = [
     { name: 'Estadísticas', route: 'statistics.index', icon: BarChart3 },
     { name: 'Pomodoro', route: 'pomodoro.index', icon: Timer },
     { name: 'Tareas', route: 'tasks.index', icon: CheckSquare },
+    { name: 'Proyectos', route: 'projects.index', icon: Folder },
     { name: 'Criterios', route: 'scoring-criteria.index', icon: Sliders },
     { name: 'Configuración', route: 'settings.index', icon: Settings },
 ];

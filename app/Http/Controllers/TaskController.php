@@ -18,13 +18,17 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $showCompleted = $request->boolean('completed', false);
+        $projectId = $request->query('project_id');
 
-        $tasks = $request->user()->tasks()->with('criteria')
+        $tasks = $request->user()->tasks()->with('criteria', 'project')
             ->withSum('criteria', 'points')
             ->when($showCompleted, function ($query) {
                 return $query->where('is_completed', true);
             }, function ($query) {
                 return $query->where('is_completed', false);
+            })
+            ->when($projectId, function ($query, $projectId) {
+                return $query->where('project_id', $projectId);
             })
             // Orders by the sum calculated by withSum
             ->orderByDesc('criteria_sum_points')
@@ -33,12 +37,15 @@ class TaskController extends Controller
             ->get();
 
         $allCriteria = $request->user()->scoringCriteria()->orderBy('name')->get();
+        $projects = $request->user()->projects()->orderBy('name')->get();
 
         return Inertia::render('Tasks/Index', [
             'tasks' => $tasks,
             'criteria' => $allCriteria,
+            'projects' => $projects,
             'filters' => [
                 'completed' => $showCompleted,
+                'project_id' => $projectId,
             ]
         ]);
     }
@@ -53,12 +60,14 @@ class TaskController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'project_id' => 'nullable|exists:projects,id',
             'criteria_ids' => 'nullable|array',
             'criteria_ids.*' => 'exists:scoring_criteria,id',
         ]);
 
         $task = $request->user()->tasks()->create([
             'title' => $validated['title'],
+            'project_id' => $validated['project_id'] ?? null,
             'is_completed' => false,
         ]);
 
@@ -82,12 +91,14 @@ class TaskController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'project_id' => 'nullable|exists:projects,id',
             'criteria_ids' => 'nullable|array',
             'criteria_ids.*' => 'exists:scoring_criteria,id',
         ]);
 
         $task->update([
             'title' => $validated['title'],
+            'project_id' => $validated['project_id'] ?? null,
         ]);
 
         // Always sync, if empty it removes all
