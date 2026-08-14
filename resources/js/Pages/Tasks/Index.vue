@@ -136,7 +136,6 @@ const deleteTask = (task) => {
                 <!-- Filter Toggle -->
                 <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center px-4 sm:px-0 gap-4">
                     <div class="flex items-center gap-2">
-                        <span class="text-[13px] text-[#7B82A0]">Proyecto:</span>
                         <ProjectSelector 
                             v-model="currentProject" 
                             :projects="projects"
