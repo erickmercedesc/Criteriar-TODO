@@ -33,6 +33,27 @@ class TaskController extends Controller
                 required: false,
                 description: 'Filtrar por ID de proyecto',
                 schema: new OA\Schema(type: 'integer')
+            ),
+            new OA\Parameter(
+                name: 'criteria_ids',
+                in: 'query',
+                required: false,
+                description: 'Filtrar por IDs de criterios (separados por comas, ej: 1,2,3)',
+                schema: new OA\Schema(type: 'string')
+            ),
+            new OA\Parameter(
+                name: 'min_score',
+                in: 'query',
+                required: false,
+                description: 'Filtrar por puntaje mínimo',
+                schema: new OA\Schema(type: 'integer')
+            ),
+            new OA\Parameter(
+                name: 'max_score',
+                in: 'query',
+                required: false,
+                description: 'Filtrar por puntaje máximo',
+                schema: new OA\Schema(type: 'integer')
             )
         ],
         responses: [
@@ -43,6 +64,9 @@ class TaskController extends Controller
     {
         $showCompleted = $request->boolean('completed', false);
         $projectId = $request->query('project_id');
+        $criteriaIds = $request->query('criteria_ids');
+        $minScore = $request->query('min_score');
+        $maxScore = $request->query('max_score');
 
         $tasks = $request->user()->tasks()->with('criteria', 'project')
             ->withSum('criteria', 'points')
@@ -53,6 +77,18 @@ class TaskController extends Controller
             })
             ->when($projectId, function ($query, $projectId) {
                 return $query->where('project_id', $projectId);
+            })
+            ->when($criteriaIds, function ($query, $criteriaIds) {
+                $ids = is_string($criteriaIds) ? explode(',', $criteriaIds) : $criteriaIds;
+                return $query->whereHas('criteria', function ($q) use ($ids) {
+                    $q->whereIn('scoring_criteria.id', $ids);
+                });
+            })
+            ->when($minScore !== null, function ($query) use ($minScore) {
+                return $query->having('criteria_sum_points', '>=', (int) $minScore);
+            })
+            ->when($maxScore !== null, function ($query) use ($maxScore) {
+                return $query->having('criteria_sum_points', '<=', (int) $maxScore);
             })
             ->orderByDesc('criteria_sum_points')
             ->orderBy('created_at')
