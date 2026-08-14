@@ -69,14 +69,28 @@ class TaskController extends Controller
         description: 'Obtiene las 3 tareas pendientes con mayor puntuación para el día.',
         security: [['apiAuth' => []]],
         tags: ['Tasks'],
+        parameters: [
+            new OA\Parameter(
+                name: 'project_id',
+                in: 'query',
+                required: false,
+                description: 'Filtrar por ID de proyecto',
+                schema: new OA\Schema(type: 'integer')
+            )
+        ],
         responses: [
             new OA\Response(response: 200, description: 'Top 3 tareas pendientes ordenadas por puntaje', content: new OA\JsonContent())
         ]
     )]
     public function top(Request $request)
     {
+        $projectId = $request->query('project_id');
+
         $tasks = $request->user()->tasks()->with('criteria', 'project')
             ->where('is_completed', false)
+            ->when($projectId, function ($query, $projectId) {
+                return $query->where('project_id', $projectId);
+            })
             ->withSum('criteria', 'points')
             ->orderByDesc('criteria_sum_points')
             ->orderBy('created_at')
