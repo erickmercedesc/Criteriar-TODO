@@ -21,6 +21,7 @@ La API base se encuentra en `/api`. Todas las respuestas son en formato JSON.
 Las tareas son elementos a realizar que pueden pertenecer a un proyecto y tener uno o más "criterios" asignados. El sistema calcula automáticamente un puntaje (`total_score`) basado en la suma de los puntos de los criterios.
 
 - `GET /api/tasks` : Obtener todas las tareas. Parámetro query opcional: `?completed=1` o `?completed=0`, y `?project_id=1`.
+- `GET /api/tasks/top` : Obtener las top 3 tareas pendientes con mayor puntuación para hoy.
 - `POST /api/tasks` : Crear una tarea.
   - Body: `{"title": "string", "notes": "string|null", "project_id": integer|null, "criteria_ids": [1, 2]}`
 - `GET /api/tasks/{id}` : Ver detalle de una tarea.

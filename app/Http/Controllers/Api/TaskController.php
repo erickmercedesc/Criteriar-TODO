@@ -63,6 +63,31 @@ class TaskController extends Controller
         ]);
     }
 
+    #[OA\Get(
+        path: '/api/tasks/top',
+        summary: 'Top 3 Tareas',
+        description: 'Obtiene las 3 tareas pendientes con mayor puntuación para el día.',
+        security: [['apiAuth' => []]],
+        tags: ['Tasks'],
+        responses: [
+            new OA\Response(response: 200, description: 'Top 3 tareas pendientes ordenadas por puntaje', content: new OA\JsonContent())
+        ]
+    )]
+    public function top(Request $request)
+    {
+        $tasks = $request->user()->tasks()->with('criteria', 'project')
+            ->where('is_completed', false)
+            ->withSum('criteria', 'points')
+            ->orderByDesc('criteria_sum_points')
+            ->orderBy('created_at')
+            ->take(3)
+            ->get();
+
+        return response()->json([
+            'data' => $tasks
+        ]);
+    }
+
     #[OA\Post(
         path: '/api/tasks',
         summary: 'Crear Tarea',
