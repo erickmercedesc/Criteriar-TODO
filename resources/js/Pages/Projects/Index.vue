@@ -1,9 +1,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { Head, useForm, router } from '@inertiajs/vue3';
+import { Head, useForm, router, Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import ResponsiveDialog from '@/Components/ResponsiveDialog.vue';
-import { Plus, Edit2, Trash2, Folder } from 'lucide-vue-next';
+import { Plus, Edit2, Trash2, Folder, ListTodo } from 'lucide-vue-next';
 
 const props = defineProps({
     projects: Array,
@@ -125,11 +125,14 @@ const deleteProject = (project) => {
                                     {{ project.tasks_count || 0 }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button @click="openEditDialog(project)" class="text-[#38BDF8] hover:text-[#38BDF8]/80 mr-4">
-                                        <Edit2 class="w-[18px] h-[18px]" />
+                                    <Link :href="route('tasks.index', { project_id: project.id })" class="inline-block text-[#A78BFA] hover:text-[#A78BFA]/80 mr-4" title="Ver tareas">
+                                        <ListTodo class="w-[18px] h-[18px]" />
+                                    </Link>
+                                    <button @click="openEditDialog(project)" class="text-[#38BDF8] hover:text-[#38BDF8]/80 mr-4" title="Editar">
+                                        <Edit2 class="w-[18px] h-[18px] inline-block" />
                                     </button>
-                                    <button @click="deleteProject(project)" class="text-[#EF4444] hover:text-[#EF4444]/80">
-                                        <Trash2 class="w-[18px] h-[18px]" />
+                                    <button @click="deleteProject(project)" class="text-[#EF4444] hover:text-[#EF4444]/80" title="Eliminar">
+                                        <Trash2 class="w-[18px] h-[18px] inline-block" />
                                     </button>
                                 </td>
                             </tr>
@@ -159,10 +162,13 @@ const deleteProject = (project) => {
                             </div>
                         </div>
                         <div class="flex items-center gap-4">
-                            <button @click="openEditDialog(project)" class="text-[#38BDF8] hover:opacity-80">
+                            <Link :href="route('tasks.index', { project_id: project.id })" class="text-[#A78BFA] hover:opacity-80" title="Ver tareas">
+                                <ListTodo class="w-[20px] h-[20px]" />
+                            </Link>
+                            <button @click="openEditDialog(project)" class="text-[#38BDF8] hover:opacity-80" title="Editar">
                                 <Edit2 class="w-[20px] h-[20px]" />
                             </button>
-                            <button @click="deleteProject(project)" class="text-[#EF4444] hover:opacity-80">
+                            <button @click="deleteProject(project)" class="text-[#EF4444] hover:opacity-80" title="Eliminar">
                                 <Trash2 class="w-[20px] h-[20px]" />
                             </button>
                         </div>
