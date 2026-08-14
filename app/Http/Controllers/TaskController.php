@@ -60,6 +60,7 @@ class TaskController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'notes' => 'nullable|string',
             'project_id' => 'nullable|exists:projects,id',
             'criteria_ids' => 'nullable|array',
             'criteria_ids.*' => 'exists:scoring_criteria,id',
@@ -67,6 +68,7 @@ class TaskController extends Controller
 
         $task = $request->user()->tasks()->create([
             'title' => $validated['title'],
+            'notes' => $validated['notes'] ?? null,
             'project_id' => $validated['project_id'] ?? null,
             'is_completed' => false,
         ]);
@@ -91,6 +93,7 @@ class TaskController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'notes' => 'nullable|string',
             'project_id' => 'nullable|exists:projects,id',
             'criteria_ids' => 'nullable|array',
             'criteria_ids.*' => 'exists:scoring_criteria,id',
@@ -98,6 +101,7 @@ class TaskController extends Controller
 
         $task->update([
             'title' => $validated['title'],
+            'notes' => $validated['notes'] ?? null,
             'project_id' => $validated['project_id'] ?? null,
         ]);
 

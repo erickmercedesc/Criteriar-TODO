@@ -22,10 +22,10 @@ Las tareas son elementos a realizar que pueden pertenecer a un proyecto y tener 
 
 - `GET /api/tasks` : Obtener todas las tareas. Parámetro query opcional: `?completed=1` o `?completed=0`, y `?project_id=1`.
 - `POST /api/tasks` : Crear una tarea.
-  - Body: `{"title": "string", "project_id": integer|null, "criteria_ids": [1, 2]}`
+  - Body: `{"title": "string", "notes": "string|null", "project_id": integer|null, "criteria_ids": [1, 2]}`
 - `GET /api/tasks/{id}` : Ver detalle de una tarea.
-- `PUT /api/tasks/{id}` : Actualizar una tarea (marcar como completada o cambiar proyecto).
-  - Body: `{"title": "string", "is_completed": boolean, "project_id": integer|null, "criteria_ids": [1, 2]}`
+- `PUT /api/tasks/{id}` : Actualizar una tarea (marcar como completada o cambiar proyecto/notas).
+  - Body: `{"title": "string", "notes": "string|null", "is_completed": boolean, "project_id": integer|null, "criteria_ids": [1, 2]}`
 - `DELETE /api/tasks/{id}` : Eliminar una tarea.
 
 ### Proyectos (Projects)

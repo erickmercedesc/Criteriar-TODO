@@ -13,6 +13,7 @@ class Task extends Model
         'user_id',
         'project_id',
         'title',
+        'notes',
         'is_completed',
         'completed_at',
     ];

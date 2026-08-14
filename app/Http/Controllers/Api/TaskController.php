@@ -74,6 +74,7 @@ class TaskController extends Controller
                 required: ['title'],
                 properties: [
                     new OA\Property(property: 'title', type: 'string', example: 'Nueva tarea importante'),
+                    new OA\Property(property: 'notes', type: 'string', example: 'Contexto de la tarea...', nullable: true),
                     new OA\Property(property: 'project_id', type: 'integer', example: 1, nullable: true),
                     new OA\Property(property: 'criteria_ids', type: 'array', items: new OA\Items(type: 'integer'), example: [1, 2])
                 ]
@@ -88,6 +89,7 @@ class TaskController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'notes' => 'nullable|string',
             'project_id' => 'nullable|exists:projects,id',
             'criteria_ids' => 'nullable|array',
             'criteria_ids.*' => 'exists:scoring_criteria,id',
@@ -95,6 +97,7 @@ class TaskController extends Controller
 
         $task = $request->user()->tasks()->create([
             'title' => $validated['title'],
+            'notes' => $validated['notes'] ?? null,
             'project_id' => $validated['project_id'] ?? null,
             'is_completed' => false,
         ]);
@@ -150,6 +153,7 @@ class TaskController extends Controller
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: 'title', type: 'string', example: 'Tarea actualizada'),
+                    new OA\Property(property: 'notes', type: 'string', example: 'Contexto de la tarea...', nullable: true),
                     new OA\Property(property: 'is_completed', type: 'boolean', example: true),
                     new OA\Property(property: 'project_id', type: 'integer', example: 1, nullable: true),
                     new OA\Property(property: 'criteria_ids', type: 'array', items: new OA\Items(type: 'integer'), example: [1])
@@ -167,6 +171,7 @@ class TaskController extends Controller
 
         $validated = $request->validate([
             'title' => 'sometimes|required|string|max:255',
+            'notes' => 'sometimes|nullable|string',
             'is_completed' => 'sometimes|boolean',
             'project_id' => 'nullable|exists:projects,id',
             'criteria_ids' => 'nullable|array',
@@ -177,6 +182,10 @@ class TaskController extends Controller
 
         if (isset($validated['title'])) {
             $task->title = $validated['title'];
+        }
+
+        if (array_key_exists('notes', $validated)) {
+            $task->notes = $validated['notes'];
         }
 
         if (array_key_exists('project_id', $validated)) {

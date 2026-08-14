@@ -51,6 +51,7 @@ const changeProject = () => {
 const form = useForm({
     id: null,
     title: '',
+    notes: '',
     project_id: '',
     criteria_ids: [],
 });
@@ -70,6 +71,7 @@ const openEditDialog = (task) => {
     form.clearErrors();
     form.id = task.id;
     form.title = task.title;
+    form.notes = task.notes || '';
     form.project_id = task.project_id || '';
     form.criteria_ids = task.criteria.map(c => c.id);
     dialogMode.value = 'edit';
@@ -300,6 +302,15 @@ const deleteTask = (task) => {
                                class="w-full bg-[#0F1117] border border-[#2E3347] text-[#F0F2F8] rounded-[6px] px-3 py-2 text-[15px] focus:ring-[#6C63FF] focus:border-[#6C63FF]"
                                placeholder="Ej: Terminar reporte mensual" required>
                         <div v-if="form.errors.title" class="text-[#EF4444] text-[11px] mt-1">{{ form.errors.title }}</div>
+                    </div>
+
+                    <!-- Notas -->
+                    <div class="mb-6">
+                        <label for="notes" class="block text-[13px] text-[#7B82A0] mb-1">Notas / Contexto (Opcional)</label>
+                        <textarea id="notes" v-model="form.notes" rows="3"
+                               class="w-full bg-[#0F1117] border border-[#2E3347] text-[#F0F2F8] rounded-[6px] px-3 py-2 text-[15px] focus:ring-[#6C63FF] focus:border-[#6C63FF]"
+                               placeholder="Añade detalles, enlaces o contexto útil..."></textarea>
+                        <div v-if="form.errors.notes" class="text-[#EF4444] text-[11px] mt-1">{{ form.errors.notes }}</div>
                     </div>
 
                     <!-- Proyecto -->
