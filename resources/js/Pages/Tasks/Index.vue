@@ -159,6 +159,7 @@ const deleteTask = (task) => {
                             <tr>
                                 <th scope="col" class="w-16 px-6 py-3"></th>
                                 <th scope="col" class="px-6 py-3 text-left text-[11px] font-medium text-[#7B82A0] uppercase tracking-[0.08em]">Tarea</th>
+                                <th scope="col" class="px-6 py-3 text-left text-[11px] font-medium text-[#7B82A0] uppercase tracking-[0.08em]">Proyecto</th>
                                 <th scope="col" class="px-6 py-3 text-left text-[11px] font-medium text-[#7B82A0] uppercase tracking-[0.08em]">Criterios</th>
                                 <th scope="col" class="px-6 py-3 text-left text-[11px] font-medium text-[#7B82A0] uppercase tracking-[0.08em]">Puntaje</th>
                                 <th scope="col" class="relative px-6 py-3"><span class="sr-only">Acciones</span></th>
@@ -188,13 +189,18 @@ const deleteTask = (task) => {
                                     </div>
                                 </td>
 
+                                <!-- Project -->
+                                <td class="px-6 py-4">
+                                    <span v-if="task.project" class="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-semibold"
+                                          :style="{ backgroundColor: `${task.project.color}15`, color: task.project.color, borderColor: `${task.project.color}30`, borderWidth: '1px' }">
+                                        {{ task.project.name }}
+                                    </span>
+                                    <span v-else class="text-[#7B82A0] text-[12px] italic">Global</span>
+                                </td>
+
                                 <!-- Criteria Tags -->
                                 <td class="px-6 py-4">
                                     <div class="flex flex-wrap gap-2">
-                                        <span v-if="task.project" class="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold"
-                                              :style="{ backgroundColor: `${task.project.color}15`, color: task.project.color, borderColor: `${task.project.color}30`, borderWidth: '1px' }">
-                                            {{ task.project.name }}
-                                        </span>
                                         <span v-for="criterion in task.criteria" :key="criterion.id"
                                               class="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold"
                                               :style="{ backgroundColor: `${criterion.color}26`, color: criterion.color }">
@@ -219,7 +225,7 @@ const deleteTask = (task) => {
                                 </td>
                             </tr>
                             <tr v-if="tasks.length === 0">
-                                <td colspan="5" class="px-6 py-12 text-center text-[#7B82A0] text-[15px]">
+                                <td colspan="6" class="px-6 py-12 text-center text-[#7B82A0] text-[15px]">
                                     {{ isShowingCompleted ? 'No tienes tareas completadas.' : 'No tienes tareas activas. ¡Crea una nueva!' }}
                                 </td>
                             </tr>
@@ -247,15 +253,20 @@ const deleteTask = (task) => {
 
                             <!-- Content -->
                             <div class="flex-1">
+                                <!-- Project Badge -->
+                                <div class="mb-1.5">
+                                    <span v-if="task.project" class="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-bold border"
+                                          :style="{ backgroundColor: `${task.project.color}15`, color: task.project.color, borderColor: `${task.project.color}30` }">
+                                        {{ task.project.name }}
+                                    </span>
+                                    <span v-else class="text-[#7B82A0] text-[11px] italic">Global</span>
+                                </div>
+
                                 <div class="text-[16px] font-medium leading-tight mb-2 pr-12" :class="task.is_completed ? 'text-[#7B82A0] line-through' : 'text-[#F0F2F8]'">
                                     {{ task.title }}
                                 </div>
 
                                 <div class="flex flex-wrap gap-1.5 mb-3">
-                                    <span v-if="task.project" class="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold border"
-                                          :style="{ backgroundColor: `${task.project.color}15`, color: task.project.color, borderColor: `${task.project.color}30` }">
-                                        {{ task.project.name }}
-                                    </span>
                                     <span v-for="criterion in task.criteria" :key="criterion.id"
                                           class="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold"
                                           :style="{ backgroundColor: `${criterion.color}26`, color: criterion.color }">
