@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import ResponsiveDialog from '@/Components/ResponsiveDialog.vue';
+import ProjectSelector from '@/Components/ProjectSelector.vue';
 import { Check, Flame, Trophy, Plus, PartyPopper, FastForward, RotateCcw } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -80,14 +81,12 @@ const submitForm = () => {
                     Command Center
                 </h2>
                 <div class="flex items-center gap-2">
-                    <span class="text-[13px] text-[#7B82A0] hidden sm:inline">Contexto:</span>
-                    <select v-model="currentContext" @change="changeContext"
-                            class="bg-[#1A1D27] border border-[#2E3347] text-[#F0F2F8] rounded-[6px] px-3 py-1.5 text-[14px] focus:ring-[#6C63FF] focus:border-[#6C63FF]">
-                        <option value="">Global (Todos)</option>
-                        <option v-for="p in projects" :key="p.id" :value="p.id">
-                            {{ p.name }}
-                        </option>
-                    </select>
+                    <ProjectSelector 
+                        v-model="currentContext" 
+                        :projects="projects"
+                        @change="changeContext"
+                        class="w-[150px] sm:w-[200px]"
+                    />
                 </div>
             </div>
         </template>
@@ -210,14 +209,12 @@ const submitForm = () => {
                     </div>
 
                     <div class="mb-6">
-                        <label for="project" class="block text-[13px] text-[#7B82A0] mb-1">Proyecto</label>
-                        <select id="project" v-model="form.project_id"
-                                class="w-full bg-[#0F1117] border border-[#2E3347] text-[#F0F2F8] rounded-[6px] px-3 py-2 text-[15px] focus:ring-[#6C63FF] focus:border-[#6C63FF]">
-                            <option value="">(Ninguno)</option>
-                            <option v-for="p in projects" :key="p.id" :value="p.id">
-                                {{ p.name }}
-                            </option>
-                        </select>
+                        <label class="block text-[13px] text-[#7B82A0] mb-1">Proyecto</label>
+                        <ProjectSelector 
+                            v-model="form.project_id" 
+                            :projects="projects"
+                            placeholder="(Ninguno)"
+                        />
                         <div v-if="form.errors.project_id" class="text-[#EF4444] text-[11px] mt-1">{{ form.errors.project_id }}</div>
                     </div>
 
