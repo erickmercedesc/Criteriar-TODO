@@ -8,6 +8,12 @@ import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/push-sw.js').catch(err => {
+        console.error('Service Worker registration failed:', err);
+    });
+}
+
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     resolve: (name) => resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob('./Pages/**/*.vue')),
