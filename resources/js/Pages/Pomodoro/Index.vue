@@ -306,7 +306,10 @@ const currentCycle = computed(() => (state.value.focus_cycles % 4) + 1);
                     <div class="flex-1">
                         <div class="text-[12px] text-[#7B82A0] font-bold uppercase tracking-wider mb-1">Trabajando en</div>
                         <h3 class="text-[20px] font-bold text-[#F0F2F8]">{{ topTask.title }}</h3>
-                        <div class="mt-2 text-[14px] text-[#7B82A0]">
+                        <p v-if="topTask.notes" class="mt-2 text-[14px] text-[#7B82A0] max-w-[600px] leading-relaxed whitespace-pre-line">
+                            {{ topTask.notes }}
+                        </p>
+                        <div class="mt-3 text-[14px] text-[#7B82A0]">
                             Valor: {{ topTask.criteria_sum_points ?? 0 }} pts
                         </div>
                     </div>
