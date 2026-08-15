@@ -1,63 +1,75 @@
-# SecondBrain API - Guía para LLMs / Bots
+# SecondBrain - La Guía Definitiva (The Ultimate Guide)
 
-Bienvenido al sistema SecondBrain. Este archivo contiene las instrucciones necesarias para interactuar con la API REST de esta aplicación.
-
-## Funcionamiento General
-SecondBrain es una aplicación de gestión de tareas gamificada (desarrollada con Laravel, Inertia y Vue PWA). Su objetivo principal es ayudar a los usuarios a organizar su día a día recompensándolos por completar tareas.
-Los usuarios pueden crear Proyectos para agrupar sus tareas. Al trabajar, pueden elegir un contexto "Global" (todas las tareas) o enfocarse en un Proyecto específico.
-Los usuarios pueden crear tareas (TODOs) y asignarles "Criterios de Puntuación" (Scoring Criteria) y opcionalmente a un Proyecto. Cada criterio tiene un valor en puntos (positivos o negativos). 
-Al completar una tarea, el usuario suma los puntos totales de la tarea a sus estadísticas diarias, fomentando la productividad a través de la gamificación. El sistema también permite marcar ciertos criterios como "complejos" para ayudar al usuario (o a un agente planificador) a equilibrar su carga de trabajo y evitar la fatiga.
-
-## Autenticación
-La API requiere un token de acceso (Bearer Token).
-Debes enviar el token en la cabecera HTTP de todas tus peticiones:
-`Authorization: Bearer <tu_api_token>`
-
-## Endpoints Principales
-
-La API base se encuentra en `/api`. Todas las respuestas son en formato JSON.
-
-### Tareas (TODOs)
-Las tareas son elementos a realizar que pueden pertenecer a un proyecto y tener uno o más "criterios" asignados. El sistema calcula automáticamente un puntaje (`total_score`) basado en la suma de los puntos de los criterios.
-
-- `GET /api/tasks` : Obtener todas las tareas. Parámetros query opcionales: `?completed=1/0`, `?project_id=1`, `?criteria_ids=1,2,3`, `?min_score=10`, `?max_score=50`.
-- `GET /api/tasks/top` : Obtener las top 3 tareas pendientes con mayor puntuación para hoy. Parámetro query opcional: `?project_id=1`.
-- `POST /api/tasks` : Crear una tarea.
-  - Body: `{"title": "string", "notes": "string|null", "project_id": integer|null, "criteria_ids": [1, 2]}`
-- `GET /api/tasks/{id}` : Ver detalle de una tarea.
-- `PUT /api/tasks/{id}` : Actualizar una tarea (marcar como completada o cambiar proyecto/notas).
-  - Body: `{"title": "string", "notes": "string|null", "is_completed": boolean, "project_id": integer|null, "criteria_ids": [1, 2]}`
-- `DELETE /api/tasks/{id}` : Eliminar una tarea.
-
-### Proyectos (Projects)
-Los proyectos sirven para agrupar tareas. Los usuarios pueden filtrar sus tareas por proyecto.
-
-- `GET /api/projects` : Obtener todos los proyectos.
-- `POST /api/projects` : Crear un proyecto.
-  - Body: `{"name": "string", "color": "#hex|null", "criteria_ids": [1, 2]}`
-- `GET /api/projects/{id}` : Ver detalle de un proyecto.
-- `PUT /api/projects/{id}` : Actualizar un proyecto.
-  - Body: `{"name": "string", "color": "#hex|null", "criteria_ids": [1, 2]}`
-- `DELETE /api/projects/{id}` : Eliminar un proyecto.
-
-### Criterios de Puntuación (Scoring Criteria)
-Los criterios son etiquetas configurables que otorgan puntos (positivos o negativos) a las tareas a las que son asignados.
-
-- `GET /api/scoring-criteria` : Obtener todos los criterios disponibles.
-- `POST /api/scoring-criteria` : Crear un criterio.
-  - Body: `{"name": "string", "points": integer, "color": "#hex", "is_complex_marker": boolean}`
-- `GET /api/scoring-criteria/{id}` : Ver detalle de un criterio.
-- `PUT /api/scoring-criteria/{id}` : Actualizar un criterio.
-- `DELETE /api/scoring-criteria/{id}` : Eliminar un criterio.
-
-## OpenAPI / Swagger
-Para obtener la especificación OpenAPI (Swagger) completa y dinámica en formato JSON, haz una petición GET a:
-`/docs/api-docs.json` (o la ruta por defecto de Swagger `/api/documentation`).
-
-## Reglas de Negocio a tener en cuenta:
-1. **Completar una Tarea**: Si envías `is_completed: true` en un PUT a una tarea, el sistema automáticamente actualizará las estadísticas diarias del usuario sumándole el puntaje total de esa tarea.
-2. **Tareas Complejas**: Criterios con `is_complex_marker = true` indican que la tarea toma mucho tiempo y puede generar fatiga. Si actúas como un agente planificador, prioriza intercalar tareas complejas con tareas sencillas.
-3. **Manejo de Errores**: Si omites un campo requerido, la API responderá con un código HTTP `422 Unprocessable Entity` y un JSON detallando los errores de validación.
+Bienvenido a **SecondBrain**. Este documento es la "fuente de verdad" sobre qué es el sistema, por qué existe y cómo opera su lógica interna. Si eres un Agente de IA de Código (Coding Assistant) a punto de modificar el sistema, o un Agente de IA de Planificación (Planner Bot) consumiendo la API, **debes leer y entender estos conceptos primero**.
 
 ---
-*Proporcionado para sistemas automatizados e integraciones de IA.*
+
+## 1. La Filosofía ("The Why")
+
+SecondBrain no es un simple gestor de tareas estático. Está diseñado fundamentalmente para resolver problemas psicológicos en la productividad humana:
+
+- **Antítesis de la "Parálisis por Análisis":** El usuario humano se agota mentalmente decidiendo *qué* hacer después. SecondBrain elimina esto. Las tareas reciben "Criterios de Puntuación". La plataforma calcula matemáticamente un puntaje y dicta: **"La tarea con el mayor puntaje es lo que tienes que hacer ahora, sin cuestionar"**.
+- **Gamificación para la Motivación:** Completar una tarea es un esfuerzo. Al finalizarla, el usuario "gana" esos puntos y se suman a sus `daily_statistics` (Estadísticas Diarias). Ver el contador de tareas completadas y puntos crecer actúa como retroalimentación dopaminérgica, manteniendo al usuario motivado para regresar al día siguiente.
+- **Prevención de Fatiga (Anti-Burnout):** SecondBrain reconoce que no todo el esfuerzo es igual y que caer en un "rabbit hole" (bucle infinito de complejidad) destruye la motivación. Usa temporizadores Pomodoro y marcadores de complejidad (`is_complex_marker`) para detener al usuario a tiempo, sugiriendo pausas o permitiendo saltar (*skip*) temporalmente las tareas agotadoras.
+
+---
+
+## 2. Arquitectura de Entidades (El "Qué")
+
+El sistema se compone de los siguientes bloques fundamentales:
+
+### A. Tareas (TODOs)
+Es la unidad base de acción. Una tarea pertenece a un usuario (`user_id`), puede pertenecer a un Proyecto (`project_id`) y tiene asociados varios Criterios.
+**Regla de Negocio:** Al marcar una tarea como completada (`is_completed: true`), el puntaje final calculado (`total_score`) se suma permanentemente a la tabla de `daily_statistics` en el campo `points_earned`, y `tasks_completed` suma 1.
+
+### B. Criterios de Puntuación (Scoring Criteria)
+El verdadero "motor" de la aplicación. Son etiquetas que el usuario crea para asignar valores lógicos a sus acciones. Los valores van de **-100 a 100 puntos**.
+*Ejemplos para contexto de IA:*
+- `[+20] Genera Dinero`: Tareas que pagan las facturas.
+- `[+10] Salud/Ejercicio`: Tareas cruciales pero que no pagan dinero directamente.
+- `[ -5] Procrastinación`: Un puntaje negativo se usa para *penalizar* o bajar la prioridad de tareas que el usuario sabe que son una pérdida de tiempo pero igual las anota (ej. "Ver YouTube").
+
+**El Marcador de Complejidad (`is_complex_marker`):**
+Si un criterio tiene esto en `true` (ej. "Programación Profunda"), SecondBrain sabe que esta tarea quemará mentalmente al usuario. Al terminar un ciclo Pomodoro en esta tarea, el frontend intercepta el flujo normal y ofrece un modal: *¿Continuar o saltar?*. Al saltar, la tarea va al caché de `skipped_tasks` para ocultarse temporalmente.
+
+### C. Proyectos (Projects)
+Sirven para agrupar tareas por contexto (ej. "Trabajo", "Casa").
+**Regla de Prioridad:** El usuario puede tener un contexto "Global" (compiten todas las tareas) o enfocarse en un Proyecto. Si se enfoca en un Proyecto, SecondBrain asume que *solo* las tareas de ese proyecto compiten por el mayor puntaje para ser hechas ahora.
+
+### D. Estadísticas Diarias (Daily Statistics)
+Se crea un registro por usuario, por día (`date`). Almacena:
+- `pomodoro_seconds`: Cuántos segundos ha estado concentrado.
+- `tasks_completed`: Cuántas tareas terminó.
+- `points_earned`: Total de puntos sumados.
+*Todo el dashboard y gráficas del usuario giran en torno a romper sus récords en estas métricas.*
+
+---
+
+## 3. Contexto Técnico (Para Agentes de Código)
+
+Si vas a modificar el código base, ten en cuenta:
+- **Stack Tecnológico:** Laravel 12 (Backend/API), Vue 3 + Inertia PWA (Frontend/UI), TailwindCSS + Vite.
+- **Multiusuario y Aislamiento:** Todo tiene `user_id`. Nunca hagas una consulta a base de datos que no esté restringida (`where('user_id', Auth::id())`).
+- **UI/UX y Diseño (`style.md`):** Se usa estrictamente una paleta de Dark Mode y bordes redondeados. Para modales, usamos el componente maestro `ResponsiveDialog.vue` (Modal en Desktop, Bottom-Sheet en Mobile).
+- **Notificaciones y Background Jobs:** El temporizador Pomodoro desencadena Jobs en Laravel que utilizan `laravel-notification-channels/webpush` para mandar una notificación push real al móvil/navegador cuando acaba el tiempo. También se carga el audio físico `/alarm.wav` en el frontend.
+
+---
+
+## 4. Reglas de Integración API (Para Bots)
+
+Si eres un bot (ej. Planner Bot) que consume la API en nombre del usuario para crearle tareas u organizarle el día:
+
+1. **La Referencia de la API (Swagger):** 
+   Este documento NO lista los endpoints individualmente para evitar desactualizaciones. **Para conocer todos los endpoints disponibles, sus métodos, parámetros y body, haz una petición `GET` a `/docs/api-docs.json`**.
+   
+2. **Autenticación:**
+   Todas las peticiones a `/api/*` requieren autorización usando un API Token generado por el usuario.
+   Header requerido: `Authorization: Bearer <api_token>`
+
+3. **Acciones Críticas a tener en cuenta:**
+   - **`GET /api/tasks/top`**: Usa este endpoint en lugar de `GET /api/tasks` si tu objetivo como bot es decirle al usuario *exactamente* cuál es la siguiente tarea que debe hacer. Este endpoint ya ejecuta todo el motor de puntuación y resuelve empates.
+   - **Crear Tareas:** Intenta siempre asociarle al menos 1 o 2 `criteria_ids`. Una tarea sin criterios tiene 0 puntos, lo cual va en contra de la gamificación del sistema (se hundirá al fondo de la lista).
+   - **Completar Tareas (`PUT` con `is_completed: true`):** No envíes esta petición a la ligera. Al hacerlo, mutas permanentemente las Estadísticas Diarias (`daily_statistics`) del usuario. Hazlo únicamente cuando tengas confirmación de que la tarea fue hecha.
+
+---
+*Fin de la guía operativa de SecondBrain.*
