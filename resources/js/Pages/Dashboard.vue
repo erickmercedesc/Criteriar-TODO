@@ -121,6 +121,10 @@ const submitForm = () => {
                         <h1 class="text-[32px] md:text-[42px] font-bold text-[#F0F2F8] leading-tight mb-6 font-inter">
                             {{ topTask.title }}
                         </h1>
+
+                        <p v-if="topTask.notes" class="text-[#7B82A0] text-[15px] max-w-[500px] mb-8 leading-relaxed whitespace-pre-line">
+                            {{ topTask.notes }}
+                        </p>
                         
                         <div class="flex flex-wrap justify-center gap-2 mb-10">
                             <span v-if="topTask.project" class="inline-flex items-center px-3 py-1 rounded-[8px] text-[12px] font-semibold border"
