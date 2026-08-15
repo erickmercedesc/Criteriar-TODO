@@ -34,3 +34,10 @@ Actualizar `style.md` si:
 Actualizar `public/llm.txt` si:
 - Se modifican los endpoints de la API (Rutas, parámetros, body request/response).
 - Se añaden nuevas reglas de negocio que deba conocer un bot o sistema de inteligencia artificial.
+
+## Control de Versiones
+
+Después de finalizar cualquier tarea o cambio y haber actualizado la documentación correspondiente (`project.md`, etc.), **debes realizar un commit en git automáticamente**.
+- Ejecuta `git add .` seguido de `git commit -m "tipo(alcance): mensaje"`.
+- Utiliza SIEMPRE la **Angular Commit Convention** para los mensajes (ej. `feat:`, `fix:`, `docs:`, `refactor:`, `style:`, `chore:`).
+- **Recuerda**: NUNCA ejecutes `git push`, respetando tu regla global.
