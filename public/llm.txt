@@ -20,6 +20,7 @@ El sistema se compone de los siguientes bloques fundamentales:
 
 ### A. Tareas (TODOs)
 Es la unidad base de acción. Una tarea pertenece a un usuario (`user_id`), puede pertenecer a un Proyecto (`project_id`) y tiene asociados varios Criterios.
+**Uso del campo `notes`:** El campo `notes` de una tarea está destinado específicamente para documentar los **Technical Specs** (especificaciones técnicas) de la misma. Si eres un agente de IA planificando o estructurando una tarea, utiliza este campo para definir el enfoque técnico, dependencias o criterios de aceptación.
 **Regla de Negocio:** Al marcar una tarea como completada (`is_completed: true`), el puntaje final calculado (`total_score`) se suma permanentemente a la tabla de `daily_statistics` en el campo `points_earned`, y `tasks_completed` suma 1.
 
 ### B. Criterios de Puntuación (Scoring Criteria)
