@@ -21,4 +21,9 @@ class Project extends Model
     {
         return $this->hasMany(Task::class);
     }
+
+    public function criteria()
+    {
+        return $this->belongsToMany(ScoringCriterion::class, 'project_scoring_criteria');
+    }
 }

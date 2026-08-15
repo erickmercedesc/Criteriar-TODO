@@ -34,9 +34,10 @@ Los proyectos sirven para agrupar tareas. Los usuarios pueden filtrar sus tareas
 
 - `GET /api/projects` : Obtener todos los proyectos.
 - `POST /api/projects` : Crear un proyecto.
-  - Body: `{"name": "string", "color": "#hex|null"}`
+  - Body: `{"name": "string", "color": "#hex|null", "criteria_ids": [1, 2]}`
 - `GET /api/projects/{id}` : Ver detalle de un proyecto.
 - `PUT /api/projects/{id}` : Actualizar un proyecto.
+  - Body: `{"name": "string", "color": "#hex|null", "criteria_ids": [1, 2]}`
 - `DELETE /api/projects/{id}` : Eliminar un proyecto.
 
 ### Criterios de Puntuación (Scoring Criteria)

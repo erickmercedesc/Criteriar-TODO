@@ -126,6 +126,7 @@ const submitForm = () => {
                             <span v-if="topTask.project" class="inline-flex items-center px-3 py-1 rounded-[8px] text-[12px] font-semibold border"
                                   :style="{ backgroundColor: `${topTask.project.color}15`, color: topTask.project.color, borderColor: `${topTask.project.color}30` }">
                                 {{ topTask.project.name }}
+                                <span class="ml-1 opacity-70" v-if="topTask.project_score > 0">({{ topTask.project_score }} pts)</span>
                             </span>
                             <span v-for="criterion in topTask.criteria" :key="criterion.id"
                                   class="inline-flex items-center px-3 py-1 rounded-[8px] text-[12px] font-semibold border"

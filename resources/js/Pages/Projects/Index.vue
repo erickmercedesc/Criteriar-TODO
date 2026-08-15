@@ -3,10 +3,11 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { Head, useForm, router, Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import ResponsiveDialog from '@/Components/ResponsiveDialog.vue';
-import { Plus, Edit2, Trash2, Folder, ListTodo } from 'lucide-vue-next';
+import { Plus, Edit2, Trash2, Folder, ListTodo, Check } from 'lucide-vue-next';
 
 const props = defineProps({
     projects: Array,
+    criteria: Array,
 });
 
 const isMobile = ref(false);
@@ -40,6 +41,7 @@ const form = useForm({
     id: null,
     name: '',
     color: '#6C63FF',
+    criteria_ids: [],
 });
 
 const isDialogOpen = ref(false);
@@ -58,6 +60,7 @@ const openEditDialog = (project) => {
     form.id = project.id;
     form.name = project.name;
     form.color = project.color || '#6C63FF';
+    form.criteria_ids = project.criteria ? project.criteria.map(c => c.id) : [];
     dialogMode.value = 'edit';
     isDialogOpen.value = true;
 };
@@ -82,6 +85,15 @@ const submitForm = () => {
 const deleteProject = (project) => {
     if (confirm(`¿Estás seguro de que quieres eliminar el proyecto "${project.name}"? Sus tareas quedarán sin proyecto asignado.`)) {
         router.delete(route('projects.destroy', project.id));
+    }
+};
+
+const toggleCriterion = (criterionId) => {
+    const index = form.criteria_ids.indexOf(criterionId);
+    if (index === -1) {
+        form.criteria_ids.push(criterionId);
+    } else {
+        form.criteria_ids.splice(index, 1);
     }
 };
 </script>
@@ -109,6 +121,7 @@ const deleteProject = (project) => {
                         <thead class="bg-[#22263A]">
                             <tr>
                                 <th scope="col" class="px-6 py-3 text-left text-[11px] font-medium text-[#7B82A0] uppercase tracking-[0.08em]">Nombre</th>
+                                <th scope="col" class="px-6 py-3 text-left text-[11px] font-medium text-[#7B82A0] uppercase tracking-[0.08em]">Score Base</th>
                                 <th scope="col" class="px-6 py-3 text-left text-[11px] font-medium text-[#7B82A0] uppercase tracking-[0.08em]">Tareas Pendientes</th>
                                 <th scope="col" class="relative px-6 py-3"><span class="sr-only">Acciones</span></th>
                             </tr>
@@ -120,6 +133,9 @@ const deleteProject = (project) => {
                                         <Folder class="w-4 h-4" />
                                     </div>
                                     {{ project.name }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-[15px] text-[#F0F2F8]">
+                                    {{ project.criteria ? project.criteria.reduce((sum, c) => sum + c.points, 0) : 0 }} pts
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-[15px] text-[#F0F2F8]">
                                     {{ project.tasks_count || 0 }}
@@ -157,7 +173,7 @@ const deleteProject = (project) => {
                                     {{ project.name }}
                                 </div>
                                 <div class="text-[12px] text-[#7B82A0]">
-                                    {{ project.tasks_count || 0 }} tareas pendientes
+                                    Score Base: {{ project.criteria ? project.criteria.reduce((sum, c) => sum + c.points, 0) : 0 }} pts • {{ project.tasks_count || 0 }} tareas pendientes
                                 </div>
                             </div>
                         </div>
@@ -210,6 +226,29 @@ const deleteProject = (project) => {
                             </button>
                         </div>
                         <div v-if="form.errors.color" class="text-[#EF4444] text-[11px] mt-1">{{ form.errors.color }}</div>
+                    </div>
+
+                    <!-- Criterios -->
+                    <div class="mb-6">
+                        <label class="block text-[13px] text-[#7B82A0] mb-3">Criterios del Proyecto (Score Base)</label>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" v-for="criterion in criteria" :key="criterion.id"
+                                    @click="toggleCriterion(criterion.id)"
+                                    class="px-3 py-1.5 rounded-[6px] text-[13px] font-medium transition-all border"
+                                    :class="form.criteria_ids.includes(criterion.id) 
+                                        ? 'border-transparent shadow-md transform scale-[1.02]' 
+                                        : 'bg-transparent border-[#2E3347] hover:border-[#7B82A0] opacity-60 hover:opacity-100'"
+                                    :style="form.criteria_ids.includes(criterion.id) ? { backgroundColor: criterion.color, color: '#fff' } : { color: criterion.color }">
+                                <div class="flex items-center gap-1.5">
+                                    <Check v-if="form.criteria_ids.includes(criterion.id)" class="w-3.5 h-3.5" />
+                                    <span>{{ criterion.name }} ({{ criterion.points > 0 ? '+' : '' }}{{ criterion.points }})</span>
+                                </div>
+                            </button>
+                        </div>
+                        <div v-if="criteria.length === 0" class="text-[13px] text-[#F59E0B] p-3 bg-[#F59E0B]/10 rounded-[6px]">
+                            Aún no has creado ningún criterio. Ve a la sección "Criterios".
+                        </div>
+                        <div v-if="form.errors.criteria_ids" class="text-[#EF4444] text-[11px] mt-1">{{ form.errors.criteria_ids }}</div>
                     </div>
 
                     <!-- Acciones -->

@@ -70,6 +70,12 @@ class TaskController extends Controller
 
         $tasks = $request->user()->tasks()->with('criteria', 'project')
             ->withSum('criteria', 'points')
+            ->addSelect([
+                'project_score' => \Illuminate\Support\Facades\DB::table('project_scoring_criteria')
+                    ->join('scoring_criteria', 'project_scoring_criteria.scoring_criterion_id', '=', 'scoring_criteria.id')
+                    ->whereColumn('project_scoring_criteria.project_id', 'tasks.project_id')
+                    ->selectRaw('COALESCE(SUM(scoring_criteria.points), 0)')
+            ])
             ->when($showCompleted, function ($query) {
                 return $query->where('is_completed', true);
             }, function ($query) {
@@ -90,6 +96,7 @@ class TaskController extends Controller
             ->when($maxScore !== null, function ($query) use ($maxScore) {
                 return $query->having('criteria_sum_points', '<=', (int) $maxScore);
             })
+            ->orderByDesc('project_score')
             ->orderByDesc('criteria_sum_points')
             ->orderBy('created_at')
             ->get();
@@ -128,6 +135,13 @@ class TaskController extends Controller
                 return $query->where('project_id', $projectId);
             })
             ->withSum('criteria', 'points')
+            ->addSelect([
+                'project_score' => \Illuminate\Support\Facades\DB::table('project_scoring_criteria')
+                    ->join('scoring_criteria', 'project_scoring_criteria.scoring_criterion_id', '=', 'scoring_criteria.id')
+                    ->whereColumn('project_scoring_criteria.project_id', 'tasks.project_id')
+                    ->selectRaw('COALESCE(SUM(scoring_criteria.points), 0)')
+            ])
+            ->orderByDesc('project_score')
             ->orderByDesc('criteria_sum_points')
             ->orderBy('created_at')
             ->take(3)

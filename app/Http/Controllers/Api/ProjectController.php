@@ -25,7 +25,7 @@ class ProjectController extends Controller
     )]
     public function index(Request $request)
     {
-        $projects = $request->user()->projects()->orderBy('name')->get();
+        $projects = $request->user()->projects()->with('criteria')->orderBy('name')->get();
 
         return response()->json([
             'data' => $projects
@@ -57,9 +57,20 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'color' => 'nullable|string|max:7',
+            'criteria_ids' => 'nullable|array',
+            'criteria_ids.*' => 'exists:scoring_criteria,id',
         ]);
 
-        $project = $request->user()->projects()->create($validated);
+        $project = $request->user()->projects()->create([
+            'name' => $validated['name'],
+            'color' => $validated['color'] ?? null,
+        ]);
+
+        if (!empty($validated['criteria_ids'])) {
+            $project->criteria()->sync($validated['criteria_ids']);
+        }
+        
+        $project->load('criteria');
 
         return response()->json([
             'message' => 'Project created successfully',
@@ -83,6 +94,8 @@ class ProjectController extends Controller
     public function show(Request $request, Project $project)
     {
         abort_if($project->user_id !== $request->user()->id, 403, 'Unauthorized action.');
+
+        $project->load('criteria');
 
         return response()->json([
             'data' => $project
@@ -118,9 +131,22 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'color' => 'nullable|string|max:7',
+            'criteria_ids' => 'nullable|array',
+            'criteria_ids.*' => 'exists:scoring_criteria,id',
         ]);
 
-        $project->update($validated);
+        if (array_key_exists('name', $validated) || array_key_exists('color', $validated)) {
+            $project->update([
+                'name' => $validated['name'] ?? $project->name,
+                'color' => array_key_exists('color', $validated) ? $validated['color'] : $project->color,
+            ]);
+        }
+
+        if (array_key_exists('criteria_ids', $validated)) {
+            $project->criteria()->sync($validated['criteria_ids'] ?? []);
+        }
+
+        $project->load('criteria');
 
         return response()->json([
             'message' => 'Project updated successfully',

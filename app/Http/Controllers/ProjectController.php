@@ -13,12 +13,15 @@ class ProjectController extends Controller
      */
     public function index(Request $request)
     {
-        $projects = $request->user()->projects()->withCount(['tasks' => function ($query) {
+        $projects = $request->user()->projects()->with('criteria')->withCount(['tasks' => function ($query) {
             $query->where('is_completed', false);
         }])->orderBy('name')->get();
 
+        $allCriteria = $request->user()->scoringCriteria()->orderBy('name')->get();
+
         return Inertia::render('Projects/Index', [
             'projects' => $projects,
+            'criteria' => $allCriteria,
         ]);
     }
 
@@ -30,9 +33,18 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'color' => 'nullable|string|max:7',
+            'criteria_ids' => 'nullable|array',
+            'criteria_ids.*' => 'exists:scoring_criteria,id',
         ]);
 
-        $request->user()->projects()->create($validated);
+        $project = $request->user()->projects()->create([
+            'name' => $validated['name'],
+            'color' => $validated['color'] ?? null,
+        ]);
+
+        if (!empty($validated['criteria_ids'])) {
+            $project->criteria()->sync($validated['criteria_ids']);
+        }
 
         return redirect()->back()->with('success', 'Project created successfully.');
     }
@@ -47,9 +59,16 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'color' => 'nullable|string|max:7',
+            'criteria_ids' => 'nullable|array',
+            'criteria_ids.*' => 'exists:scoring_criteria,id',
         ]);
 
-        $project->update($validated);
+        $project->update([
+            'name' => $validated['name'],
+            'color' => $validated['color'] ?? null,
+        ]);
+
+        $project->criteria()->sync($validated['criteria_ids'] ?? []);
 
         return redirect()->back()->with('success', 'Project updated successfully.');
     }

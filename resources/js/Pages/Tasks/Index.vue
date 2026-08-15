@@ -193,6 +193,7 @@ const deleteTask = (task) => {
                                     <span v-if="task.project" class="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-semibold"
                                           :style="{ backgroundColor: `${task.project.color}15`, color: task.project.color, borderColor: `${task.project.color}30`, borderWidth: '1px' }">
                                         {{ task.project.name }}
+                                        <span class="ml-1 opacity-70" v-if="task.project_score > 0">({{ task.project_score }} pts)</span>
                                     </span>
                                     <span v-else class="text-[#7B82A0] text-[12px] italic">Global</span>
                                 </td>
@@ -257,6 +258,7 @@ const deleteTask = (task) => {
                                     <span v-if="task.project" class="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-bold border"
                                           :style="{ backgroundColor: `${task.project.color}15`, color: task.project.color, borderColor: `${task.project.color}30` }">
                                         {{ task.project.name }}
+                                        <span class="ml-1 opacity-70" v-if="task.project_score > 0">({{ task.project_score }} pts)</span>
                                     </span>
                                     <span v-else class="text-[#7B82A0] text-[11px] italic">Global</span>
                                 </div>
