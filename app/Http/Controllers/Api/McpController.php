@@ -515,7 +515,7 @@ class McpController extends Controller
                 return ['message' => 'Task deleted successfully'];
 
             case 'secondbrain_list_projects':
-                return $user->projects()->with('criteria')->orderBy('name')->get();
+                return $user->projects()->with('criteria')->orderByDesc('base_score')->orderBy('name')->get();
 
             case 'secondbrain_create_project':
                 $project = $user->projects()->create([

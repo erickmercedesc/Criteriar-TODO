@@ -18,6 +18,7 @@ class ProjectController extends Controller
             ->withCount(['tasks' => function ($query) {
                 $query->where('is_completed', false);
             }])
+            ->orderByDesc('base_score')
             ->orderBy('name')
             ->get();
 

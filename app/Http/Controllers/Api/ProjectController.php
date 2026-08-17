@@ -25,7 +25,7 @@ class ProjectController extends Controller
     )]
     public function index(Request $request)
     {
-        $projects = $request->user()->projects()->with('criteria')->orderBy('name')->get();
+        $projects = $request->user()->projects()->with('criteria')->orderByDesc('base_score')->orderBy('name')->get();
 
         return response()->json([
             'data' => $projects
