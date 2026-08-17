@@ -17,7 +17,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 /**
  * Native MCP (Model Context Protocol) Server Controller
  * 
- * Provides HTTP/SSE and JSON-RPC endpoints for AI Agents (Antigravity, Cursor, Claude, Windsurf).
+ * Implements MCP 2024-11-05 specification over SSE and HTTP POST.
+ * Compatible with Antigravity, Cursor, Claude Desktop, Windsurf, and custom AI agents.
  */
 class McpController extends Controller
 {
@@ -43,10 +44,15 @@ class McpController extends Controller
     }
 
     /**
-     * Handle MCP SSE Connection (GET /api/mcp/sse)
+     * Handle MCP SSE Connection (GET /api/mcp/sse or POST /api/mcp/sse fallback)
      */
     public function sse(Request $request)
     {
+        // If client sends POST to /sse, handle as standard message to prevent 405 Method Not Allowed
+        if ($request->isMethod('POST')) {
+            return $this->handleMessage($request);
+        }
+
         $user = $this->authenticateUser($request);
 
         if (!$user) {
@@ -56,9 +62,16 @@ class McpController extends Controller
         $sessionId = Str::uuid()->toString();
         Cache::put("mcp_session_{$sessionId}", $user->id, now()->addHours(6));
 
-        $postEndpoint = url("/api/mcp/message?sessionId={$sessionId}");
+        $schemeAndHost = $request->getSchemeAndHttpHost();
+        $token = $request->bearerToken() 
+            ?: $request->query('api_token') 
+            ?: $request->query('token')
+            ?: $request->input('api_token');
 
-        $response = new StreamedResponse(function () use ($postEndpoint) {
+        $tokenParam = $token ? "&api_token=" . urlencode($token) : "";
+        $postEndpoint = "{$schemeAndHost}/api/mcp/message?sessionId={$sessionId}{$tokenParam}";
+
+        $response = new StreamedResponse(function () use ($sessionId, $postEndpoint) {
             // Disable output buffering
             while (ob_get_level() > 0) {
                 ob_end_flush();
@@ -69,14 +82,29 @@ class McpController extends Controller
             echo "data: {$postEndpoint}\n\n";
             flush();
 
-            // Keep SSE alive with pings
-            $pings = 0;
-            while ($pings < 120 && !connection_aborted()) {
-                sleep(15);
-                echo "event: ping\n";
-                echo "data: {}\n\n";
-                flush();
-                $pings++;
+            $startTime = time();
+            $lastPing = time();
+
+            while ((time() - $startTime) < 300 && !connection_aborted()) {
+                // Check if there are messages in outbox for this session
+                $messages = Cache::pull("mcp_outbox_{$sessionId}", []);
+                if (!empty($messages)) {
+                    foreach ($messages as $msg) {
+                        echo "event: message\n";
+                        echo "data: " . json_encode($msg, JSON_UNESCAPED_UNICODE) . "\n\n";
+                        flush();
+                    }
+                }
+
+                // Heartbeat ping every 15s
+                if ((time() - $lastPing) >= 15) {
+                    echo "event: ping\n";
+                    echo "data: {}\n\n";
+                    flush();
+                    $lastPing = time();
+                }
+
+                usleep(100000); // 100ms poll interval
             }
         });
 
@@ -84,6 +112,8 @@ class McpController extends Controller
         $response->headers->set('Cache-Control', 'no-cache, no-transform');
         $response->headers->set('Connection', 'keep-alive');
         $response->headers->set('X-Accel-Buffering', 'no');
+        $response->headers->set('Access-Control-Allow-Origin', '*');
+        $response->headers->set('Access-Control-Allow-Headers', '*');
 
         return $response;
     }
@@ -93,7 +123,7 @@ class McpController extends Controller
      */
     public function handleMessage(Request $request)
     {
-        $sessionId = $request->query('sessionId');
+        $sessionId = $request->query('sessionId') ?: $request->input('sessionId');
         $user = null;
 
         if ($sessionId) {
@@ -115,22 +145,35 @@ class McpController extends Controller
                     'code' => -32000,
                     'message' => 'Unauthorized: Invalid or missing API token',
                 ],
-            ], 401);
+            ], 401, [
+                'Access-Control-Allow-Origin' => '*',
+                'Access-Control-Allow-Headers' => '*',
+            ]);
         }
 
-        $payload = $request->json()->all();
+        $rawContent = $request->getContent();
+        $payload = json_decode($rawContent, true);
+        if (!is_array($payload)) {
+            $payload = $request->json()->all() ?: $request->all();
+        }
+
         $method = $payload['method'] ?? null;
         $id = $payload['id'] ?? null;
         $params = $payload['params'] ?? [];
 
         // Handle Notifications (no response needed)
         if ($method === 'notifications/initialized') {
-            return response()->noContent();
+            return response()->noContent(200, [
+                'Access-Control-Allow-Origin' => '*',
+                'Access-Control-Allow-Headers' => '*',
+            ]);
         }
+
+        $responsePayload = null;
 
         switch ($method) {
             case 'initialize':
-                return response()->json([
+                $responsePayload = [
                     'jsonrpc' => '2.0',
                     'id' => $id,
                     'result' => [
@@ -143,16 +186,18 @@ class McpController extends Controller
                             'version' => '1.0.0',
                         ],
                     ],
-                ]);
+                ];
+                break;
 
             case 'tools/list':
-                return response()->json([
+                $responsePayload = [
                     'jsonrpc' => '2.0',
                     'id' => $id,
                     'result' => [
                         'tools' => $this->getToolsSchema(),
                     ],
-                ]);
+                ];
+                break;
 
             case 'tools/call':
                 $toolName = $params['name'] ?? '';
@@ -160,7 +205,7 @@ class McpController extends Controller
 
                 try {
                     $result = $this->executeTool($user, $toolName, $toolArgs);
-                    return response()->json([
+                    $responsePayload = [
                         'jsonrpc' => '2.0',
                         'id' => $id,
                         'result' => [
@@ -171,9 +216,9 @@ class McpController extends Controller
                                 ],
                             ],
                         ],
-                    ]);
+                    ];
                 } catch (\Throwable $e) {
-                    return response()->json([
+                    $responsePayload = [
                         'jsonrpc' => '2.0',
                         'id' => $id,
                         'result' => [
@@ -185,19 +230,34 @@ class McpController extends Controller
                                 ],
                             ],
                         ],
-                    ]);
+                    ];
                 }
+                break;
 
             default:
-                return response()->json([
+                $responsePayload = [
                     'jsonrpc' => '2.0',
                     'id' => $id,
                     'error' => [
                         'code' => -32601,
                         'message' => "Method not found: {$method}",
                     ],
-                ], 404);
+                ];
+                break;
         }
+
+        // If this message belongs to an active SSE session, queue it to the SSE outbox
+        if ($sessionId && $responsePayload) {
+            $outbox = Cache::get("mcp_outbox_{$sessionId}", []);
+            $outbox[] = $responsePayload;
+            Cache::put("mcp_outbox_{$sessionId}", $outbox, now()->addMinutes(5));
+        }
+
+        // Always return the response payload in the HTTP response for direct clients as well
+        return response()->json($responsePayload, 200, [
+            'Access-Control-Allow-Origin' => '*',
+            'Access-Control-Allow-Headers' => '*',
+        ]);
     }
 
     /**
