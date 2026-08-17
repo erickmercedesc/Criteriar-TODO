@@ -27,8 +27,11 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Test User',
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
+                'api_token' => 'test-api-token-secondbrain-12345',
             ]
         );
+        $user->api_token = 'test-api-token-secondbrain-12345';
+        $user->save();
 
         // Clean existing data for this user to ensure idempotent seeding
         $user->tasks()->delete();

@@ -33,4 +33,15 @@ Route::middleware('auth:api')->name('api.')->group(function () {
             ]
         ]);
     })->name('statistics');
+
+    // Native MCP (Model Context Protocol) Endpoints (Authenticated)
+    Route::get('/mcp/sse', [\App\Http\Controllers\Api\McpController::class, 'sse'])->name('mcp.sse');
+    Route::post('/mcp/message', [\App\Http\Controllers\Api\McpController::class, 'handleMessage'])->name('mcp.message');
+    Route::post('/mcp', [\App\Http\Controllers\Api\McpController::class, 'handleMessage'])->name('mcp.direct');
 });
+
+// Also allow direct access with token in query param for SSE clients that don't pass headers
+Route::get('/mcp/sse', [\App\Http\Controllers\Api\McpController::class, 'sse'])->name('mcp.sse.public');
+Route::post('/mcp/message', [\App\Http\Controllers\Api\McpController::class, 'handleMessage'])->name('mcp.message.public');
+Route::post('/mcp', [\App\Http\Controllers\Api\McpController::class, 'handleMessage'])->name('mcp.direct.public');
+
