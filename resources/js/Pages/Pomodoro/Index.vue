@@ -5,7 +5,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import ResponsiveDialog from '@/Components/ResponsiveDialog.vue';
 import ProjectSelector from '@/Components/ProjectSelector.vue';
 import { useWorkingProject } from '@/Composables/useWorkingProject';
-import { Play, Pause, Square, Coffee, Brain, ArrowRight, Flame, SkipForward, AlertCircle } from 'lucide-vue-next';
+import { Play, Pause, Square, Coffee, Brain, ArrowRight, Flame, SkipForward, AlertCircle, PartyPopper, Volume2, VolumeX } from 'lucide-vue-next';
 import axios from 'axios';
 
 const props = defineProps({
@@ -35,7 +35,9 @@ watch(workingProjectId, (newVal) => {
 const state = ref(props.initialState);
 const currentRemaining = ref(props.initialState.remaining_seconds || 0);
 
-const showComplexTaskModal = ref(false);
+const showCompletionModal = ref(false);
+const completedPhase = ref('focus'); // 'focus' or 'break'
+const isComplexTaskAfterFocus = ref(false);
 
 // Timer and Polling references
 let localTimer = null;
@@ -57,14 +59,15 @@ const initAudio = () => {
 };
 
 /**
- * Plays the alarm.wav sound from the public directory.
+ * Plays the alarm.wav sound from the public directory with optional looping.
+ * @param {boolean} loop - Whether to loop the alarm continuously until stopped.
  * @returns {void}
  */
-const playDing = () => {
+const playDing = (loop = true) => {
     try {
         if (!alarmAudio) initAudio();
         
-        // Reset time in case it is already playing
+        alarmAudio.loop = loop;
         alarmAudio.currentTime = 0;
         const playPromise = alarmAudio.play();
         
@@ -76,6 +79,28 @@ const playDing = () => {
     } catch (e) {
         console.error("Audio playback failed", e);
     }
+};
+
+/**
+ * Stops and resets the alarm sound.
+ */
+const stopAlarm = () => {
+    if (alarmAudio) {
+        alarmAudio.pause();
+        alarmAudio.currentTime = 0;
+        alarmAudio.loop = false;
+    }
+    showCompletionModal.value = false;
+};
+
+const dismissAndStartNext = () => {
+    stopAlarm();
+    sendAction('start');
+};
+
+const dismissAndSkipComplex = () => {
+    stopAlarm();
+    skipComplexTask();
 };
 
 const updateLocalTime = () => {
@@ -96,16 +121,16 @@ const updateLocalTime = () => {
         if (diff <= 0) {
             if (currentRemaining.value > 0) {
                 // Just hit zero
-                playDing();
-                
                 const wasFocus = state.value.phase === 'focus';
-                const isComplex = props.topTask && props.topTask.criteria && props.topTask.criteria.some(c => c.is_complex_marker);
+                const isComplex = wasFocus && props.topTask && props.topTask.criteria && props.topTask.criteria.some(c => c.is_complex_marker);
                 
-                fetchState().then(() => {
-                    if (wasFocus && isComplex) {
-                        showComplexTaskModal.value = true;
-                    }
-                }); // Force a sync so the backend intercepts expiration
+                completedPhase.value = wasFocus ? 'focus' : 'break';
+                isComplexTaskAfterFocus.value = isComplex;
+                
+                playDing(true);
+                showCompletionModal.value = true;
+                
+                fetchState(); // Force a sync so the backend intercepts expiration
             }
             currentRemaining.value = 0;
         } else {
@@ -147,6 +172,7 @@ const sendAction = async (action, data = {}) => {
         if (alarmAudio) {
             alarmAudio.pause();
             alarmAudio.currentTime = 0;
+            alarmAudio.loop = false;
         }
 
         // If action includes a dash, we must use route helpers carefully or just let it map via route name
@@ -375,31 +401,80 @@ const currentCycle = computed(() => (state.value.focus_cycles % 4) + 1);
             </div>
         </div>
 
-        <!-- Complex Task Interruption Modal -->
-        <ResponsiveDialog :show="showComplexTaskModal" @close="() => {}" maxWidth="sm">
+        <!-- Completion Modal (Pomodoro / Break Terminado) -->
+        <ResponsiveDialog :show="showCompletionModal" @close="stopAlarm" maxWidth="sm">
             <div class="p-6 md:p-8 text-center relative overflow-hidden">
-                <div class="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[#F59E0B] opacity-5 mix-blend-screen filter blur-[80px] pointer-events-none"></div>
-                
-                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-[#F59E0B]/10 mb-6 relative z-10 border border-[#F59E0B]/20">
-                    <AlertCircle class="h-8 w-8 text-[#F59E0B]" />
+                <!-- Ambient Glow Background -->
+                <div v-if="completedPhase === 'focus'" 
+                     class="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[#22C55E] opacity-10 mix-blend-screen filter blur-[80px] pointer-events-none"></div>
+                <div v-else 
+                     class="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[#6C63FF] opacity-10 mix-blend-screen filter blur-[80px] pointer-events-none"></div>
+
+                <!-- Icon Badge -->
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-5 relative z-10 border"
+                     :class="completedPhase === 'focus' 
+                         ? 'bg-[#22C55E]/15 border-[#22C55E]/30 text-[#22C55E]' 
+                         : 'bg-[#6C63FF]/15 border-[#6C63FF]/30 text-[#6C63FF]'">
+                    <PartyPopper v-if="completedPhase === 'focus'" class="h-8 w-8" />
+                    <Coffee v-else class="h-8 w-8" />
                 </div>
-                
-                <h3 class="text-[22px] font-bold text-[#F0F2F8] mb-3 font-inter relative z-10">
-                    Ciclo Completado
+
+                <!-- Ringing / Sound Status Pill -->
+                <div class="inline-flex items-center gap-2 bg-[#EF4444]/15 border border-[#EF4444]/30 text-[#EF4444] px-3 py-1 rounded-full text-[12px] font-semibold mb-4 animate-pulse relative z-10">
+                    <Volume2 class="w-3.5 h-3.5" />
+                    <span>Alarma sonando</span>
+                </div>
+
+                <!-- Title -->
+                <h3 class="text-[24px] font-bold text-[#F0F2F8] mb-2 font-inter relative z-10">
+                    {{ completedPhase === 'focus' ? '¡Pomodoro Terminado!' : '¡Descanso Terminado!' }}
                 </h3>
-                
-                <p class="text-[15px] text-[#7B82A0] mb-8 relative z-10 leading-relaxed">
-                    Estás trabajando en una tarea marcada como compleja. ¿Deseas continuar con ella en el siguiente ciclo o prefieres pasar a otra cosa?
+
+                <!-- Subtitle / Message -->
+                <p class="text-[15px] text-[#7B82A0] mb-6 relative z-10 leading-relaxed">
+                    <template v-if="completedPhase === 'focus'">
+                        ¡Excelente sesión de concentración! Es momento de tomar un respiro y recargar energía.
+                    </template>
+                    <template v-else>
+                        El descanso ha concluido. ¿Listo para el siguiente bloque de productividad?
+                    </template>
                 </p>
-                
+
+                <!-- Complex Task Warning / Choice if applicable -->
+                <div v-if="isComplexTaskAfterFocus" class="mb-6 p-4 rounded-[12px] bg-[#F59E0B]/10 border border-[#F59E0B]/20 text-left relative z-10">
+                    <div class="flex items-center gap-2 text-[#F59E0B] font-semibold text-[13px] mb-1">
+                        <AlertCircle class="w-4 h-4 shrink-0" />
+                        <span>Tarea Compleja Detectada</span>
+                    </div>
+                    <p class="text-[12px] text-[#7B82A0]">
+                        Esta tarea está marcada como compleja. Puedes continuar con ella o saltarla para el próximo ciclo.
+                    </p>
+                </div>
+
+                <!-- Action Buttons -->
                 <div class="flex flex-col gap-3 justify-center relative z-10">
-                    <button @click="showComplexTaskModal = false" class="w-full px-4 py-3.5 bg-[#6C63FF] text-white text-[15px] font-bold rounded-[12px] hover:bg-[#5A51E6] transition-all shadow-[0_4px_12px_rgba(108,99,255,0.25)] flex items-center justify-center gap-2">
-                        <Brain class="w-5 h-5" />
-                        Continuar con esta tarea
+                    <!-- Start Next Phase directly (stops alarm & starts) -->
+                    <button @click="dismissAndStartNext" 
+                            class="w-full px-4 py-3.5 text-white text-[15px] font-bold rounded-[12px] transition-all shadow-[0_4px_12px_rgba(0,0,0,0.3)] flex items-center justify-center gap-2"
+                            :class="completedPhase === 'focus' 
+                                ? 'bg-[#22C55E] hover:bg-[#16A34A]' 
+                                : 'bg-[#6C63FF] hover:bg-[#5A51E6]'">
+                        <Play class="w-5 h-5" />
+                        Detener alarma y empezar {{ completedPhase === 'focus' ? (state.phase === 'long_break' ? 'Descanso Largo' : 'Descanso Corto') : 'Focus' }}
                     </button>
-                    <button @click="skipComplexTask" class="w-full px-4 py-3.5 bg-transparent border border-[#2E3347] text-[#F0F2F8] text-[15px] font-bold rounded-[12px] hover:bg-[#2E3347]/50 transition-colors flex items-center justify-center gap-2">
-                        <SkipForward class="w-5 h-5" />
-                        Pasar a la siguiente tarea
+
+                    <!-- Skip task button for complex task -->
+                    <button v-if="isComplexTaskAfterFocus" @click="dismissAndSkipComplex" 
+                            class="w-full px-4 py-3 bg-transparent border border-[#F59E0B]/40 text-[#F59E0B] hover:bg-[#F59E0B]/10 text-[14px] font-semibold rounded-[12px] transition-colors flex items-center justify-center gap-2">
+                        <SkipForward class="w-4 h-4" />
+                        Pasar a otra tarea
+                    </button>
+
+                    <!-- Just Stop Alarm -->
+                    <button @click="stopAlarm" 
+                            class="w-full px-4 py-3 bg-[#1A1D27] hover:bg-[#22263A] border border-[#2E3347] text-[#F0F2F8] text-[14px] font-medium rounded-[12px] transition-colors flex items-center justify-center gap-2">
+                        <VolumeX class="w-4 h-4 text-[#7B82A0]" />
+                        Detener alarma
                     </button>
                 </div>
             </div>
