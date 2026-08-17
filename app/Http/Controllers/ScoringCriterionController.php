@@ -15,7 +15,7 @@ class ScoringCriterionController extends Controller
     public function index(Request $request)
     {
         return Inertia::render('ScoringCriteria/Index', [
-            'criteria' => $request->user()->scoringCriteria()->orderByDesc('points')->get()
+            'criteria' => $request->user()->scoringCriteria()->global()->orderByDesc('points')->get()
         ]);
     }
 
@@ -29,13 +29,16 @@ class ScoringCriterionController extends Controller
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('scoring_criteria', 'name')->where('user_id', $request->user()->id),
+                Rule::unique('scoring_criteria', 'name')
+                    ->where('user_id', $request->user()->id)
+                    ->whereNull('project_id'),
             ],
             'points' => 'required|integer|min:-100|max:100',
             'color' => 'required|string|size:7|starts_with:#',
             'is_complex_marker' => 'boolean',
         ]);
 
+        $validated['project_id'] = null;
         $request->user()->scoringCriteria()->create($validated);
 
         return redirect()->back()->with('success', 'Criterion created successfully.');
@@ -46,14 +49,17 @@ class ScoringCriterionController extends Controller
      */
     public function update(Request $request, ScoringCriterion $scoringCriterion)
     {
-        abort_if($scoringCriterion->user_id !== $request->user()->id, 403);
+        abort_if($scoringCriterion->user_id !== $request->user()->id || $scoringCriterion->project_id !== null, 403);
 
         $validated = $request->validate([
             'name' => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('scoring_criteria', 'name')->where('user_id', $request->user()->id)->ignore($scoringCriterion->id),
+                Rule::unique('scoring_criteria', 'name')
+                    ->where('user_id', $request->user()->id)
+                    ->whereNull('project_id')
+                    ->ignore($scoringCriterion->id),
             ],
             'points' => 'required|integer|min:-100|max:100',
             'color' => 'required|string|size:7|starts_with:#',
@@ -70,7 +76,7 @@ class ScoringCriterionController extends Controller
      */
     public function destroy(ScoringCriterion $scoringCriterion)
     {
-        abort_if($scoringCriterion->user_id !== auth()->id(), 403);
+        abort_if($scoringCriterion->user_id !== auth()->id() || $scoringCriterion->project_id !== null, 403);
 
         $scoringCriterion->delete();
 

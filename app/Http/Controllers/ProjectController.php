@@ -13,15 +13,16 @@ class ProjectController extends Controller
      */
     public function index(Request $request)
     {
-        $projects = $request->user()->projects()->with('criteria')->withCount(['tasks' => function ($query) {
-            $query->where('is_completed', false);
-        }])->orderBy('name')->get();
-
-        $allCriteria = $request->user()->scoringCriteria()->orderBy('name')->get();
+        $projects = $request->user()->projects()
+            ->with('criteria')
+            ->withCount(['tasks' => function ($query) {
+                $query->where('is_completed', false);
+            }])
+            ->orderBy('name')
+            ->get();
 
         return Inertia::render('Projects/Index', [
             'projects' => $projects,
-            'criteria' => $allCriteria,
         ]);
     }
 
@@ -33,18 +34,14 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'color' => 'nullable|string|max:7',
-            'criteria_ids' => 'nullable|array',
-            'criteria_ids.*' => 'exists:scoring_criteria,id',
+            'base_score' => 'nullable|integer|between:0,1000',
         ]);
 
-        $project = $request->user()->projects()->create([
+        $request->user()->projects()->create([
             'name' => $validated['name'],
-            'color' => $validated['color'] ?? null,
+            'color' => $validated['color'] ?? '#6C63FF',
+            'base_score' => $validated['base_score'] ?? 0,
         ]);
-
-        if (!empty($validated['criteria_ids'])) {
-            $project->criteria()->sync($validated['criteria_ids']);
-        }
 
         return redirect()->back()->with('success', 'Project created successfully.');
     }
@@ -59,16 +56,14 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'color' => 'nullable|string|max:7',
-            'criteria_ids' => 'nullable|array',
-            'criteria_ids.*' => 'exists:scoring_criteria,id',
+            'base_score' => 'nullable|integer|between:0,1000',
         ]);
 
         $project->update([
             'name' => $validated['name'],
-            'color' => $validated['color'] ?? null,
+            'color' => $validated['color'] ?? '#6C63FF',
+            'base_score' => $validated['base_score'] ?? 0,
         ]);
-
-        $project->criteria()->sync($validated['criteria_ids'] ?? []);
 
         return redirect()->back()->with('success', 'Project updated successfully.');
     }

@@ -83,6 +83,21 @@ const form = useForm({
     criteria_ids: [],
 });
 
+const selectedProject = computed(() => {
+    if (!form.project_id) return null;
+    return props.projects.find(p => p.id == form.project_id);
+});
+
+const availableCriteria = computed(() => {
+    const selectedProjectId = form.project_id ? Number(form.project_id) : null;
+    return props.criteria.filter(c => !c.project_id || c.project_id === selectedProjectId);
+});
+
+watch(() => form.project_id, (newVal) => {
+    const allowedIds = new Set(availableCriteria.value.map(c => c.id));
+    form.criteria_ids = form.criteria_ids.filter(id => allowedIds.has(id));
+});
+
 const isDialogOpen = ref(false);
 const dialogMode = ref('create'); // 'create' or 'edit'
 
@@ -358,17 +373,25 @@ const deleteTask = (task) => {
                         <ProjectSelector 
                             v-model="form.project_id" 
                             :projects="projects"
-                            placeholder="(Ninguno)"
+                            placeholder="(Ninguno - Global)"
                         />
+                        <div v-if="selectedProject && selectedProject.base_score > 0" class="mt-2 text-[12px] text-[#38BDF8] flex items-center gap-1.5 font-medium">
+                            <span>★ Este proyecto añade automáticamente <strong>+{{ selectedProject.base_score }} pts</strong> de base a la tarea.</span>
+                        </div>
                         <div v-if="form.errors.project_id" class="text-[#EF4444] text-[11px] mt-1">{{ form.errors.project_id }}</div>
                     </div>
 
                     <!-- Criterios -->
                     <div class="mb-6">
-                        <label class="block text-[13px] text-[#7B82A0] mb-3">Criterios que aplican</label>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-[13px] text-[#7B82A0]">Criterios que aplican</label>
+                            <span class="text-[11px] text-[#7B82A0]">
+                                {{ selectedProject ? `Globales + ${selectedProject.name}` : 'Solo Globales' }}
+                            </span>
+                        </div>
                         
                         <div class="flex flex-wrap gap-2">
-                            <button type="button" v-for="criterion in criteria" :key="criterion.id"
+                            <button type="button" v-for="criterion in availableCriteria" :key="criterion.id"
                                     @click="toggleCriterion(criterion.id)"
                                     class="px-3 py-1.5 rounded-[6px] text-[13px] font-medium transition-all border"
                                     :class="form.criteria_ids.includes(criterion.id) 
@@ -382,8 +405,8 @@ const deleteTask = (task) => {
                             </button>
                         </div>
                         
-                        <div v-if="criteria.length === 0" class="text-[13px] text-[#F59E0B] p-3 bg-[#F59E0B]/10 rounded-[6px]">
-                            Aún no has creado ningún criterio. Ve a la sección "Criterios" para configurar cómo puntuarás tus tareas.
+                        <div v-if="availableCriteria.length === 0" class="text-[13px] text-[#F59E0B] p-3 bg-[#F59E0B]/10 rounded-[6px]">
+                            No hay criterios disponibles para esta selección.
                         </div>
                         <div v-if="form.errors.criteria_ids" class="text-[#EF4444] text-[11px] mt-1">{{ form.errors.criteria_ids }}</div>
                     </div>

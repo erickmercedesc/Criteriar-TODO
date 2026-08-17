@@ -71,10 +71,9 @@ class TaskController extends Controller
         $tasks = $request->user()->tasks()->with('criteria', 'project')
             ->withSum('criteria', 'points')
             ->addSelect([
-                'project_score' => \Illuminate\Support\Facades\DB::table('project_scoring_criteria')
-                    ->join('scoring_criteria', 'project_scoring_criteria.scoring_criterion_id', '=', 'scoring_criteria.id')
-                    ->whereColumn('project_scoring_criteria.project_id', 'tasks.project_id')
-                    ->selectRaw('COALESCE(SUM(scoring_criteria.points), 0)')
+                'project_score' => \App\Models\Project::select('base_score')
+                    ->whereColumn('projects.id', 'tasks.project_id')
+                    ->limit(1)
             ])
             ->when($showCompleted, function ($query) {
                 return $query->where('is_completed', true);
@@ -135,10 +134,9 @@ class TaskController extends Controller
             })
             ->withSum('criteria', 'points')
             ->addSelect([
-                'project_score' => \Illuminate\Support\Facades\DB::table('project_scoring_criteria')
-                    ->join('scoring_criteria', 'project_scoring_criteria.scoring_criterion_id', '=', 'scoring_criteria.id')
-                    ->whereColumn('project_scoring_criteria.project_id', 'tasks.project_id')
-                    ->selectRaw('COALESCE(SUM(scoring_criteria.points), 0)')
+                'project_score' => \App\Models\Project::select('base_score')
+                    ->whereColumn('projects.id', 'tasks.project_id')
+                    ->limit(1)
             ])
             ->orderByRaw('(COALESCE(project_score, 0) + COALESCE(criteria_sum_points, 0)) DESC')
             ->orderBy('created_at')
@@ -291,10 +289,7 @@ class TaskController extends Controller
 
             $userId = $request->user()->id;
             $taskPoints = (int) $task->criteria()->sum('points');
-            $projectPoints = $task->project_id ? (int) \Illuminate\Support\Facades\DB::table('project_scoring_criteria')
-                ->join('scoring_criteria', 'project_scoring_criteria.scoring_criterion_id', '=', 'scoring_criteria.id')
-                ->where('project_scoring_criteria.project_id', $task->project_id)
-                ->sum('scoring_criteria.points') : 0;
+            $projectPoints = $task->project_id ? (int) \App\Models\Project::where('id', $task->project_id)->value('base_score') : 0;
             $points = $taskPoints + $projectPoints;
             $multiplier = $newIsCompleted ? 1 : -1;
 

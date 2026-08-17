@@ -23,10 +23,9 @@ class TaskController extends Controller
         $tasks = $request->user()->tasks()->with('criteria', 'project')
             ->withSum('criteria', 'points')
             ->addSelect([
-                'project_score' => \Illuminate\Support\Facades\DB::table('project_scoring_criteria')
-                    ->join('scoring_criteria', 'project_scoring_criteria.scoring_criterion_id', '=', 'scoring_criteria.id')
-                    ->whereColumn('project_scoring_criteria.project_id', 'tasks.project_id')
-                    ->selectRaw('COALESCE(SUM(scoring_criteria.points), 0)')
+                'project_score' => \App\Models\Project::select('base_score')
+                    ->whereColumn('projects.id', 'tasks.project_id')
+                    ->limit(1)
             ])
             ->when($showCompleted, function ($query) {
                 return $query->where('is_completed', true);
@@ -43,7 +42,7 @@ class TaskController extends Controller
             ->get();
 
         $allCriteria = $request->user()->scoringCriteria()->orderBy('name')->get();
-        $projects = $request->user()->projects()->orderBy('name')->get();
+        $projects = $request->user()->projects()->with('criteria')->orderBy('name')->get();
 
         return Inertia::render('Tasks/Index', [
             'tasks' => $tasks,
@@ -76,7 +75,6 @@ class TaskController extends Controller
             'title' => $validated['title'],
             'notes' => $validated['notes'] ?? null,
             'project_id' => $validated['project_id'] ?? null,
-            'is_completed' => false,
         ]);
 
         if (!empty($validated['criteria_ids'])) {
@@ -95,7 +93,7 @@ class TaskController extends Controller
      */
     public function update(Request $request, Task $task)
     {
-        abort_if($task->user_id !== $request->user()->id, 403);
+        abort_if($task->user_id !== auth()->id(), 403);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -136,10 +134,7 @@ class TaskController extends Controller
 
         $userId = auth()->id();
         $taskPoints = (int) $task->criteria()->sum('points');
-        $projectPoints = $task->project_id ? (int) \Illuminate\Support\Facades\DB::table('project_scoring_criteria')
-            ->join('scoring_criteria', 'project_scoring_criteria.scoring_criterion_id', '=', 'scoring_criteria.id')
-            ->where('project_scoring_criteria.project_id', $task->project_id)
-            ->sum('scoring_criteria.points') : 0;
+        $projectPoints = $task->project_id ? (int) \App\Models\Project::where('id', $task->project_id)->value('base_score') : 0;
         $points = $taskPoints + $projectPoints;
         $multiplier = $isCompleted ? 1 : -1;
 

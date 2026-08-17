@@ -33,28 +33,42 @@ Una tarea marcada como "Genera dinero" + "Trabajo" = **30 puntos**.
 
 ### Base de Datos
 
-#### `scoring_criteria` — Criterios configurables
-| Campo        | Tipo      | Descripción                         |
-| ------------ | --------- | ----------------------------------- |
-| `id`         | bigint PK | —                                   |
-| `user_id`    | bigint FK | Propietario del criterio            |
-| `name`       | string    | Ej: "Genera dinero", "Trabajo"      |
-| `points`     | integer   | Puntos que aporta                   |
-| `color`      | string    | Color visual (hex)                  |
-| `created_at` | timestamp | —                                   |
-| `updated_at` | timestamp | —                                   |
+#### `projects` — Proyectos de Trabajo
+| Campo        | Tipo      | Descripción                                |
+| ------------ | --------- | ------------------------------------------ |
+| `id`         | bigint PK | —                                          |
+| `user_id`    | bigint FK | Propietario del proyecto                   |
+| `name`       | string    | Nombre del proyecto                        |
+| `color`      | string    | Color visual (hex)                         |
+| `base_score` | integer   | Puntuación base automática (default: 0)    |
+| `created_at` | timestamp | —                                          |
+| `updated_at` | timestamp | —                                          |
+
+#### `scoring_criteria` — Criterios configurables (Globales y de Proyecto)
+| Campo               | Tipo        | Descripción                                                |
+| ------------------- | ----------- | ---------------------------------------------------------- |
+| `id`                | bigint PK   | —                                                          |
+| `user_id`           | bigint FK   | Propietario del criterio                                   |
+| `project_id`        | bigint FK?  | Proyecto al que pertenece (NULL = Criterio Global)         |
+| `name`              | string      | Ej: "Genera dinero", "Stripe Checkout"                     |
+| `points`            | integer     | Puntos que aporta (-100 a 100)                             |
+| `color`             | string      | Color visual (hex)                                         |
+| `is_complex_marker` | boolean     | Si activa modal de decisión anti-burnout al fin de Pomodoro|
+| `created_at`        | timestamp   | —                                                          |
+| `updated_at`        | timestamp   | —                                                          |
 
 #### `tasks` — Tareas
-| Campo          | Tipo      | Descripción                          |
-| -------------- | --------- | ------------------------------------ |
-| `id`           | bigint PK | —                                    |
-| `user_id`      | bigint FK | Propietario de la tarea              |
-| `title`        | string    | Nombre de la tarea                   |
-| `total_score`  | integer   | Puntaje calculado (suma de criterios)|
-| `is_completed` | boolean   | Si está completada                   |
-| `completed_at` | timestamp | Cuándo se completó                   |
-| `created_at`   | timestamp | —                                    |
-| `updated_at`   | timestamp | —                                    |
+| Campo          | Tipo        | Descripción                                                       |
+| -------------- | ----------- | ----------------------------------------------------------------- |
+| `id`           | bigint PK   | —                                                                 |
+| `user_id`      | bigint FK   | Propietario de la tarea                                           |
+| `project_id`   | bigint FK?  | Proyecto asignado (hereda `project.base_score`)                   |
+| `title`        | string      | Nombre de la tarea                                                |
+| `notes`        | text?       | Technical specs / notas contextuales                              |
+| `is_completed` | boolean     | Si está completada                                                |
+| `completed_at` | timestamp   | Cuándo se completó                                                |
+| `created_at`   | timestamp   | —                                                                 |
+| `updated_at`   | timestamp   | —                                                                 |
 
 #### `task_scoring_criteria` — Tabla pivote (muchos a muchos)
 | Campo                  | Tipo      | Descripción |
@@ -70,22 +84,27 @@ Una tarea marcada como "Genera dinero" + "Trabajo" = **30 puntos**.
 | `date`             | date      | Fecha del registro                    |
 | `pomodoro_seconds` | integer   | Segundos en fase focus                |
 | `tasks_completed`  | integer   | Tareas marcadas como completadas      |
-| `points_earned`    | integer   | Puntos recolectados                   |
+| `points_earned`    | integer   | Puntos recolectados (base + criterios)|
 | `created_at`       | timestamp | —                                     |
 | `updated_at`       | timestamp | —                                     |
 
 ### Páginas / Vistas
-- `/tasks` — Lista de tareas ordenadas por puntaje (mayor primero).
-- `/tasks/create` — Crear nueva tarea seleccionando criterios.
-- `/scoring-criteria` — Panel de gestión de criterios (CRUD completo).
+- `/dashboard` — Command Center con Top Task prioritaria, estadísticas del día y selector reactivo de proyecto de trabajo.
+- `/pomodoro` — Temporizador Pomodoro sincronizado con Top Task y soporte Web Push en background.
+- `/tasks` — Lista de tareas ordenadas por puntaje total (`base_score + criterios`), con filtros y modal de creación responsivo.
+- `/projects` — Lista y gestión de proyectos con su `base_score`.
+- `/projects/{project_id}/scoring-criteria` — Panel dedicado para administrar criterios específicos de un proyecto.
+- `/scoring-criteria` — Panel de gestión de Criterios Globales.
 - `/statistics` — Panel de estadísticas diarias e historial (Gráficas).
 
 ### Flujo de uso
-1. El usuario configura sus criterios en `/scoring-criteria`.
-2. Crea tareas asignando los criterios que aplican.
-3. El sistema calcula automáticamente el puntaje total.
-4. Las tareas se muestran ordenadas por puntaje descendente.
-5. Al completar una tarea, se marca como hecha y sale de la lista activa.
+1. El usuario configura Criterios Globales en `/scoring-criteria`.
+2. Crea Proyectos en `/projects` asignando una puntuación base (`base_score`).
+3. En `/projects/{id}/scoring-criteria`, define criterios específicos para ese proyecto.
+4. Al crear una tarea, selecciona el Proyecto y el formulario ofrece automáticamente los Criterios Globales + los específicos del Proyecto.
+5. El sistema calcula `total_score = project.base_score + suma(criterios)`.
+6. Las tareas se ordenan globalmente por `total_score DESC`.
+7. Al completar una tarea, el total de puntos se suma a las estadísticas diarias.
 
 ---
 

@@ -3,9 +3,10 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { Head, useForm, router, Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import ResponsiveDialog from '@/Components/ResponsiveDialog.vue';
-import { Plus, Edit2, Trash2, AlertCircle, Globe, Flame, Folder } from 'lucide-vue-next';
+import { Plus, Edit2, Trash2, AlertCircle, ArrowLeft, Sliders, Flame } from 'lucide-vue-next';
 
 const props = defineProps({
+    project: Object,
     criteria: Array,
 });
 
@@ -50,7 +51,7 @@ const dialogMode = ref('create'); // 'create' or 'edit'
 const openCreateDialog = () => {
     form.reset();
     form.clearErrors();
-    form.color = '#6C63FF';
+    form.color = props.project.color || '#6C63FF';
     dialogMode.value = 'create';
     isDialogOpen.value = true;
 };
@@ -74,58 +75,67 @@ const closeDialog = () => {
 
 const submitForm = () => {
     if (dialogMode.value === 'create') {
-        form.post(route('scoring-criteria.store'), {
+        form.post(route('projects.scoring-criteria.store', props.project.id), {
             onSuccess: () => closeDialog(),
         });
     } else {
-        form.put(route('scoring-criteria.update', form.id), {
+        form.put(route('projects.scoring-criteria.update', [props.project.id, form.id]), {
             onSuccess: () => closeDialog(),
         });
     }
 };
 
 const deleteCriterion = (criterion) => {
-    if (confirm(`¿Estás seguro de que quieres eliminar el criterio global "${criterion.name}"?`)) {
-        router.delete(route('scoring-criteria.destroy', criterion.id));
+    if (confirm(`¿Estás seguro de que quieres eliminar el criterio "${criterion.name}" del proyecto ${props.project.name}?`)) {
+        router.delete(route('projects.scoring-criteria.destroy', [props.project.id, criterion.id]));
     }
 };
 </script>
 
 <template>
-    <AppLayout title="Criterios Globales">
+    <AppLayout :title="`Criterios - ${project.name}`">
         <template #header>
-            <div class="flex justify-between items-center">
-                <div>
-                    <h2 class="font-semibold text-[22px] text-[#F0F2F8] leading-tight font-inter">
-                        Criterios Globales
-                    </h2>
-                    <p class="text-[13px] text-[#7B82A0] mt-0.5">
-                        Criterios transversales disponibles para todas las tareas de la cuenta.
-                    </p>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <Link :href="route('projects.index')" 
+                          class="p-2 text-[#7B82A0] hover:text-[#F0F2F8] hover:bg-[#1A1D27] rounded-lg transition-colors border border-[#2E3347]">
+                        <ArrowLeft class="w-5 h-5" />
+                    </Link>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full" :style="{ backgroundColor: project.color }"></span>
+                            <h2 class="font-semibold text-[20px] md:text-[22px] text-[#F0F2F8] leading-tight font-inter">
+                                Criterios: {{ project.name }}
+                            </h2>
+                        </div>
+                        <p class="text-[13px] text-[#7B82A0] mt-0.5">
+                            Puntuación Base del Proyecto: <strong class="text-[#F0F2F8]">{{ project.base_score }} pts</strong>
+                        </p>
+                    </div>
                 </div>
-                <button @click="openCreateDialog" class="bg-[#6C63FF] hover:bg-[#6C63FF]/90 text-white px-[16px] md:px-[20px] py-[8px] md:py-[10px] rounded-[8px] text-[15px] font-medium transition flex items-center gap-2 shadow-sm">
-                    <Plus class="w-[18px] h-[18px] md:w-[20px] md:h-[20px]" />
-                    <span>Nuevo Criterio Global</span>
+
+                <button @click="openCreateDialog" 
+                        class="bg-[#6C63FF] hover:bg-[#6C63FF]/90 text-white px-[16px] md:px-[20px] py-[8px] md:py-[10px] rounded-[8px] text-[15px] font-medium transition flex items-center justify-center gap-2 shadow-sm">
+                    <Plus class="w-[18px] h-[18px]" />
+                    Nuevo Criterio de Proyecto
                 </button>
             </div>
         </template>
 
         <div class="py-6 md:py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            
-            <!-- Global Info Card -->
+            <!-- Context Info Card -->
             <div class="mb-6 bg-[#1A1D27] border border-[#2E3347] rounded-[16px] p-4 md:p-5 flex items-start gap-4">
                 <div class="p-2.5 rounded-[10px] bg-[#6C63FF]/10 text-[#6C63FF] shrink-0 mt-0.5">
-                    <Globe class="w-5 h-5" />
+                    <Sliders class="w-5 h-5" />
                 </div>
                 <div class="text-[14px] leading-relaxed text-[#7B82A0]">
-                    Estos criterios son <strong class="text-[#F0F2F8]">Globales</strong> y pueden ser asignados a cualquier tarea, sin importar a qué proyecto pertenezca. 
-                    Si deseas crear criterios exclusivos para un proyecto específico, ingresa a la sección 
-                    <Link :href="route('projects.index')" class="text-[#6C63FF] hover:underline font-semibold">Proyectos</Link> y pulsa el botón <strong class="text-[#A78BFA]">Criterios</strong> en el proyecto deseado.
+                    Estos criterios son exclusivos para las tareas asociadas al proyecto <strong class="text-[#F0F2F8]">{{ project.name }}</strong>.
+                    Al crear una tarea en este proyecto, se sumarán sus puntos a la puntuación base del proyecto (<strong class="text-[#F0F2F8]">{{ project.base_score }} pts</strong>).
                 </div>
             </div>
 
-            <!-- Desktop Table View -->
-            <div v-if="!isMobile" class="bg-[#1A1D27] overflow-hidden rounded-[16px] border border-[#2E3347] shadow-sm">
+            <!-- Desktop View: Table -->
+            <div v-if="!isMobile" class="bg-[#1A1D27] border border-[#2E3347] rounded-[16px] overflow-hidden shadow-sm">
                 <table class="min-w-full divide-y divide-[#2E3347]">
                     <thead class="bg-[#13151F]">
                         <tr>
@@ -133,15 +143,15 @@ const deleteCriterion = (criterion) => {
                             <th scope="col" class="px-6 py-4 text-left text-[12px] font-bold text-[#7B82A0] uppercase tracking-wider">Nombre</th>
                             <th scope="col" class="px-6 py-4 text-left text-[12px] font-bold text-[#7B82A0] uppercase tracking-wider">Puntos</th>
                             <th scope="col" class="px-6 py-4 text-left text-[12px] font-bold text-[#7B82A0] uppercase tracking-wider">Complejidad</th>
-                            <th scope="col" class="relative px-6 py-4"><span class="sr-only">Acciones</span></th>
+                            <th scope="col" class="px-6 py-4 text-right text-[12px] font-bold text-[#7B82A0] uppercase tracking-wider">Acciones</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#2E3347]">
-                        <tr v-for="criterion in criteria" :key="criterion.id" class="group hover:bg-[#222634] transition-colors">
+                        <tr v-for="criterion in criteria" :key="criterion.id" class="hover:bg-[#222634] transition">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-block w-4 h-4 rounded-full" :style="{ backgroundColor: criterion.color }"></span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-[15px] text-[#F0F2F8] font-medium">
+                            <td class="px-6 py-4 whitespace-nowrap text-[15px] font-medium text-[#F0F2F8]">
                                 {{ criterion.name }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-[15px] font-mono" :class="criterion.points >= 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'">
@@ -153,31 +163,31 @@ const deleteCriterion = (criterion) => {
                                 </span>
                                 <span v-else class="text-[#7B82A0] text-[13px]">—</span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button @click="openEditDialog(criterion)" class="text-[#38BDF8] hover:text-[#38BDF8]/80 mr-4" title="Editar">
-                                    <Edit2 class="w-[18px] h-[18px] inline-block" />
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button @click="openEditDialog(criterion)" class="text-[#38BDF8] hover:text-[#38BDF8]/80 mr-4">
+                                    <Edit2 class="w-[18px] h-[18px]" />
                                 </button>
-                                <button @click="deleteCriterion(criterion)" class="text-[#EF4444] hover:text-[#EF4444]/80" title="Eliminar">
-                                    <Trash2 class="w-[18px] h-[18px] inline-block" />
+                                <button @click="deleteCriterion(criterion)" class="text-[#EF4444] hover:text-[#EF4444]/80">
+                                    <Trash2 class="w-[18px] h-[18px]" />
                                 </button>
                             </td>
                         </tr>
                         <tr v-if="criteria.length === 0">
                             <td colspan="5" class="px-6 py-12 text-center text-[#7B82A0] text-[15px]">
-                                No hay criterios globales configurados.
+                                No hay criterios específicos para este proyecto. ¡Crea el primero!
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <!-- Mobile Card View -->
+            <!-- Mobile View: Cards -->
             <div v-else class="space-y-3">
-                <div v-for="criterion in criteria" :key="criterion.id" class="bg-[#1A1D27] border border-[#2E3347] rounded-[16px] p-4 flex justify-between items-center shadow-sm">
+                <div v-for="criterion in criteria" :key="criterion.id" class="bg-[#1A1D27] border border-[#2E3347] rounded-[16px] p-4 flex items-center justify-between shadow-sm">
                     <div class="flex items-center gap-3">
                         <span class="w-4 h-4 rounded-full flex-shrink-0" :style="{ backgroundColor: criterion.color }"></span>
                         <div>
-                            <div class="text-[16px] text-[#F0F2F8] font-medium">
+                            <div class="text-[16px] font-medium text-[#F0F2F8]">
                                 {{ criterion.name }}
                             </div>
                             <div class="text-[13px] font-mono mt-0.5 flex items-center gap-2" :class="criterion.points >= 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'">
@@ -198,47 +208,48 @@ const deleteCriterion = (criterion) => {
                     </div>
                 </div>
                 <div v-if="criteria.length === 0" class="text-center text-[#7B82A0] py-12 text-[15px]">
-                    No hay criterios globales configurados.
+                    No hay criterios específicos para este proyecto. ¡Crea el primero!
                 </div>
             </div>
-
         </div>
 
-        <!-- Form Dialog (Responsive) -->
+        <!-- Create / Edit Dialog -->
         <ResponsiveDialog :show="isDialogOpen" @close="closeDialog" maxWidth="md">
             <div class="p-6">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2.5 rounded-[10px]" :style="{ backgroundColor: `${form.color}20`, color: form.color }">
-                        <Globe class="w-6 h-6" />
+                        <Sliders class="w-6 h-6" />
                     </div>
                     <div>
                         <h3 class="text-[18px] font-bold text-[#F0F2F8]">
-                            {{ dialogMode === 'create' ? 'Nuevo Criterio Global' : 'Editar Criterio Global' }}
+                            {{ dialogMode === 'create' ? 'Nuevo Criterio de Proyecto' : 'Editar Criterio' }}
                         </h3>
                         <p class="text-[12px] text-[#7B82A0]">
-                            Aplica a todas las tareas de tu cuenta
+                            Proyecto: {{ project.name }}
                         </p>
                     </div>
                 </div>
-                
+
                 <form @submit.prevent="submitForm" class="space-y-5">
-                    <!-- Nombre -->
+                    <!-- Name -->
                     <div>
-                        <label for="name" class="block text-[13px] font-bold text-[#7B82A0] uppercase tracking-wider mb-2">Nombre del Criterio</label>
-                        <input type="text" id="name" v-model="form.name" 
-                               class="w-full bg-[#13151F] border border-[#2E3347] text-[#F0F2F8] rounded-[10px] px-4 py-3 text-[15px] focus:border-[#6C63FF] focus:ring-1 focus:ring-[#6C63FF] transition"
-                               placeholder="Ej: Urgente, Genera dinero, Procrastinación" required>
+                        <label class="block text-[13px] font-bold text-[#7B82A0] uppercase tracking-wider mb-2">
+                            Nombre del Criterio
+                        </label>
+                        <input type="text" v-model="form.name" required placeholder="Ej. Stripe Integration, AWS Lab..." 
+                               class="w-full bg-[#13151F] border border-[#2E3347] rounded-[10px] px-4 py-3 text-[#F0F2F8] focus:border-[#6C63FF] focus:ring-1 focus:ring-[#6C63FF] transition text-[15px]" />
                         <div v-if="form.errors.name" class="text-[#EF4444] text-[12px] mt-1.5 flex items-center gap-1">
                             <AlertCircle class="w-3.5 h-3.5" /> {{ form.errors.name }}
                         </div>
                     </div>
 
-                    <!-- Puntos -->
+                    <!-- Points -->
                     <div>
-                        <label for="points" class="block text-[13px] font-bold text-[#7B82A0] uppercase tracking-wider mb-2">Puntos (-100 a 100)</label>
-                        <input type="number" id="points" v-model="form.points" min="-100" max="100"
-                               class="w-full bg-[#13151F] border border-[#2E3347] text-[#F0F2F8] font-mono rounded-[10px] px-4 py-3 text-[15px] focus:border-[#6C63FF] focus:ring-1 focus:ring-[#6C63FF] transition"
-                               required>
+                        <label class="block text-[13px] font-bold text-[#7B82A0] uppercase tracking-wider mb-2">
+                            Puntos (-100 a 100)
+                        </label>
+                        <input type="number" v-model="form.points" min="-100" max="100" required 
+                               class="w-full bg-[#13151F] border border-[#2E3347] rounded-[10px] px-4 py-3 text-[#F0F2F8] font-mono focus:border-[#6C63FF] focus:ring-1 focus:ring-[#6C63FF] transition text-[15px]" />
                         <p class="text-[12px] text-[#7B82A0] mt-1.5">
                             Valores positivos suman prioridad, valores negativos restan prioridad.
                         </p>
@@ -247,37 +258,37 @@ const deleteCriterion = (criterion) => {
                         </div>
                     </div>
 
-                    <!-- Color -->
+                    <!-- Color Swatches -->
                     <div>
-                        <label class="block text-[13px] font-bold text-[#7B82A0] uppercase tracking-wider mb-2">Color Identificador</label>
+                        <label class="block text-[13px] font-bold text-[#7B82A0] uppercase tracking-wider mb-2">
+                            Color Identificador
+                        </label>
                         <div class="flex items-center gap-3 flex-wrap">
-                            <button type="button" v-for="color in colorOptions" :key="color"
-                                    @click="form.color = color"
+                            <button v-for="color in colorOptions" :key="color" type="button" @click="form.color = color" 
                                     class="w-8 h-8 rounded-full transition-transform flex items-center justify-center"
                                     :style="{ backgroundColor: color }"
                                     :class="form.color === color ? 'scale-125 ring-2 ring-white ring-offset-2 ring-offset-[#1A1D27]' : 'hover:scale-110'">
                             </button>
                         </div>
-                        <div v-if="form.errors.color" class="text-[#EF4444] text-[12px] mt-1.5 flex items-center gap-1">
-                            <AlertCircle class="w-3.5 h-3.5" /> {{ form.errors.color }}
-                        </div>
                     </div>
 
-                    <!-- Es Compleja -->
+                    <!-- Complex Marker -->
                     <div class="bg-[#13151F] border border-[#2E3347] rounded-[12px] p-4">
                         <label class="flex items-start gap-3 cursor-pointer">
-                            <input type="checkbox" v-model="form.is_complex_marker" class="mt-1 rounded bg-[#1A1D27] border-[#2E3347] text-[#6C63FF] focus:ring-0 w-4 h-4">
+                            <input type="checkbox" v-model="form.is_complex_marker" 
+                                   class="mt-1 rounded bg-[#1A1D27] border-[#2E3347] text-[#6C63FF] focus:ring-0 w-4 h-4" />
                             <div>
                                 <div class="text-[14px] font-bold text-[#F0F2F8] flex items-center gap-1.5">
                                     <Flame class="w-4 h-4 text-[#F59E0B]" /> Marcar como Criterio Complejo
                                 </div>
-                                <p class="text-[12px] text-[#7B82A0] mt-0.5">El Pomodoro te preguntará qué hacer al finalizar ciclos en tareas con este criterio.</p>
+                                <p class="text-[12px] text-[#7B82A0] mt-0.5">
+                                    Si una tarea tiene este criterio, al terminar un Pomodoro se consultará si deseas continuar o saltarla para evitar estancamientos.
+                                </p>
                             </div>
                         </label>
-                        <div v-if="form.errors.is_complex_marker" class="text-[#EF4444] text-[12px] mt-1">{{ form.errors.is_complex_marker }}</div>
                     </div>
 
-                    <!-- Acciones -->
+                    <!-- Dialog Actions -->
                     <div class="flex items-center justify-end gap-3 pt-4 border-t border-[#2E3347]">
                         <button type="button" @click="closeDialog" 
                                 class="px-5 py-2.5 rounded-[8px] text-[14px] font-medium text-[#7B82A0] hover:text-[#F0F2F8] transition">

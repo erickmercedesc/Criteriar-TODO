@@ -31,16 +31,15 @@ class PomodoroController extends Controller
             })
             ->withSum('criteria', 'points')
             ->addSelect([
-                'project_score' => \Illuminate\Support\Facades\DB::table('project_scoring_criteria')
-                    ->join('scoring_criteria', 'project_scoring_criteria.scoring_criterion_id', '=', 'scoring_criteria.id')
-                    ->whereColumn('project_scoring_criteria.project_id', 'tasks.project_id')
-                    ->selectRaw('COALESCE(SUM(scoring_criteria.points), 0)')
+                'project_score' => \App\Models\Project::select('base_score')
+                    ->whereColumn('projects.id', 'tasks.project_id')
+                    ->limit(1)
             ])
             ->orderByRaw('(COALESCE(project_score, 0) + COALESCE(criteria_sum_points, 0)) DESC')
             ->orderBy('created_at')
             ->first();
 
-        $projects = $request->user()->projects()->orderBy('name')->get();
+        $projects = $request->user()->projects()->with('criteria')->orderBy('name')->get();
 
         return Inertia::render('Pomodoro/Index', [
             'topTask' => $topTask,

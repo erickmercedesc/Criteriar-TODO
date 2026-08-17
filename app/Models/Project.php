@@ -9,7 +9,12 @@ class Project extends Model
     protected $fillable = [
         'name',
         'color',
+        'base_score',
         'user_id',
+    ];
+
+    protected $casts = [
+        'base_score' => 'integer',
     ];
 
     public function user()
@@ -24,6 +29,6 @@ class Project extends Model
 
     public function criteria()
     {
-        return $this->belongsToMany(ScoringCriterion::class, 'project_scoring_criteria');
+        return $this->hasMany(ScoringCriterion::class);
     }
 }

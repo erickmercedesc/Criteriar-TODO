@@ -44,16 +44,13 @@ class Task extends Model
             ? (int) $this->attributes['criteria_sum_points']
             : (int) ($this->relationLoaded('criteria') ? $this->criteria->sum('points') : $this->criteria()->sum('points'));
 
-        $projectPoints = isset($this->attributes['project_score'])
+        $projectBaseScore = isset($this->attributes['project_score'])
             ? (int) $this->attributes['project_score']
             : ($this->relationLoaded('project') && $this->project
-                ? ($this->project->relationLoaded('criteria') ? (int) $this->project->criteria->sum('points') : (int) $this->project->criteria()->sum('points'))
-                : ($this->project_id ? (int) \Illuminate\Support\Facades\DB::table('project_scoring_criteria')
-                    ->join('scoring_criteria', 'project_scoring_criteria.scoring_criterion_id', '=', 'scoring_criteria.id')
-                    ->where('project_scoring_criteria.project_id', $this->project_id)
-                    ->sum('scoring_criteria.points') : 0));
+                ? (int) $this->project->base_score
+                : ($this->project_id ? (int) \App\Models\Project::where('id', $this->project_id)->value('base_score') : 0));
 
-        return $taskPoints + $projectPoints;
+        return $taskPoints + $projectBaseScore;
     }
 
     /**

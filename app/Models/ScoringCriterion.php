@@ -17,6 +17,7 @@ class ScoringCriterion extends Model
 {
     protected $fillable = [
         'user_id',
+        'project_id',
         'name',
         'points',
         'color',
@@ -45,5 +46,36 @@ class ScoringCriterion extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Obtener el proyecto al que pertenece este criterio (si es específico de un proyecto).
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    /**
+     * Scope para obtener solo criterios globales (sin proyecto).
+     */
+    public function scopeGlobal($query)
+    {
+        return $query->whereNull('project_id');
+    }
+
+    /**
+     * Scope para obtener criterios disponibles (globales + los del proyecto especificado).
+     */
+    public function scopeAvailableFor($query, $projectId = null)
+    {
+        if (!$projectId) {
+            return $query->whereNull('project_id');
+        }
+        return $query->where(function ($q) use ($projectId) {
+            $q->whereNull('project_id')->orWhere('project_id', $projectId);
+        });
     }
 }

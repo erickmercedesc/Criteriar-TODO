@@ -28,6 +28,11 @@
 - **Database Seeder Integral para Pruebas:** Se enriqueció `DatabaseSeeder.php` para sembrar datos representativos del usuario de prueba (`test@example.com` / `password`), incluyendo un set completo de Criterios (con puntos positivos, negativos y marcador complejo), Proyectos con criterios asignados, Tareas pendientes/completadas con criterios asociados y notas técnicas, así como datos de Estadísticas Diarias para visualización de métricas.
 - **Modal de Finalización de Pomodoro & Break con Control de Alarma:** Al terminar una sesión de Focus o un Descanso (corto/largo), la alarma de audio se ejecuta en bucle continuo y se despliega automáticamente un modal (`ResponsiveDialog`) con el mensaje y diseño alusivo ("¡Pomodoro Terminado!" o "¡Descanso Terminado!"). El usuario puede detener la alarma con un solo clic, iniciar de inmediato la siguiente fase o tomar decisiones sobre tareas complejas.
 - **Herencia y Suma de Puntuación de Proyectos en Tareas:** Las tareas ahora heredan automáticamente los puntos de los criterios asignados a su Proyecto como su puntuación base predeterminada, sumando dinámicamente los criterios particulares que se le agreguen a la tarea. Se unificó el cálculo (`total_score`) en el modelo `Task`, en las consultas backend con ordenamiento global combinado (`(project_score + criteria_sum_points) DESC`), en la acumulación de estadísticas diarias al completar tareas, y en la visualización en el Dashboard, Pomodoro y Lista de Tareas.
+- **Separación de Criterios Globales y Criterios por Proyecto:**
+  - Se estructuró un modelo híbrido donde los criterios con `project_id = null` son **Globales** (gestionados en `/scoring-criteria` y disponibles para cualquier tarea) y los criterios con `project_id = X` son **Específicos del Proyecto** (gestionados en la ruta dedicada `/projects/{project_id}/scoring-criteria`).
+  - Los Proyectos cuentan con un campo `base_score` configurable directamente en `/projects`.
+  - Los modales de creación/edición de tareas en el Dashboard y Lista de Tareas computan reactivamente los criterios disponibles según el proyecto seleccionado (Globales + Proyecto) y limpian automáticamente los criterios huérfanos si el usuario cambia de proyecto.
+
 
 
 
