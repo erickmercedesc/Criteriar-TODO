@@ -32,6 +32,11 @@
   - Se estructuró un modelo híbrido donde los criterios con `project_id = null` son **Globales** (gestionados en `/scoring-criteria` y disponibles para cualquier tarea) y los criterios con `project_id = X` son **Específicos del Proyecto** (gestionados en la ruta dedicada `/projects/{project_id}/scoring-criteria`).
   - Los Proyectos cuentan con un campo `base_score` configurable directamente en `/projects`.
   - Los modales de creación/edición de tareas en el Dashboard y Lista de Tareas computan reactivamente los criterios disponibles según el proyecto seleccionado (Globales + Proyecto) y limpian automáticamente los criterios huérfanos si el usuario cambia de proyecto.
+- **Rediseño Visual de la Tarjeta Principal del Dashboard:**
+  - Se desacopló la visualización del Proyecto de los Criterios en el Hero Card del Dashboard.
+  - El Proyecto ahora se presenta en un Pill de contexto superior con icono `Folder` y puntos base (`+X pts base`), mientras que los Criterios asignados cuentan con una sección propia etiquetada con puntos de color.
+  - Se agregó un desglose en el pie de la tarjeta mostrando claramente `Base Proyecto | Criterios | Puntaje Total`.
+
 
 
 

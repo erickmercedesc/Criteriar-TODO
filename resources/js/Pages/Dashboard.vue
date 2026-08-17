@@ -5,7 +5,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import ResponsiveDialog from '@/Components/ResponsiveDialog.vue';
 import ProjectSelector from '@/Components/ProjectSelector.vue';
 import { useWorkingProject } from '@/Composables/useWorkingProject';
-import { Check, Flame, Trophy, Plus, PartyPopper, FastForward, RotateCcw } from 'lucide-vue-next';
+import { Check, Flame, Trophy, Plus, PartyPopper, FastForward, RotateCcw, Folder, Globe } from 'lucide-vue-next';
 
 const props = defineProps({
     pendingTasks: Array,
@@ -155,8 +155,26 @@ const submitForm = () => {
                     <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#F59E0B] to-[#EF4444]"></div>
                     
                     <div class="p-8 md:p-12 flex flex-col items-center text-center">
-                        <div class="inline-flex items-center gap-2 bg-[#F59E0B]/10 text-[#F59E0B] px-4 py-1.5 rounded-full text-[12px] font-bold uppercase tracking-widest mb-6">
-                            <Flame class="w-4 h-4" /> ¿Qué hago ahora?
+                        <!-- Top Badges: Status & Project Distinction -->
+                        <div class="flex flex-wrap items-center justify-center gap-3 mb-6">
+                            <div class="inline-flex items-center gap-1.5 bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/20 px-3.5 py-1 rounded-full text-[12px] font-bold uppercase tracking-wider">
+                                <Flame class="w-4 h-4" /> ¿Qué hago ahora?
+                            </div>
+
+                            <!-- Distinct Project Pill -->
+                            <div v-if="topTask.project" 
+                                 class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-[12px] font-semibold border shadow-sm"
+                                 :style="{ backgroundColor: `${topTask.project.color}20`, color: topTask.project.color, borderColor: `${topTask.project.color}40` }">
+                                <Folder class="w-3.5 h-3.5" />
+                                <span>{{ topTask.project.name }}</span>
+                                <span v-if="(topTask.project.base_score || topTask.project_score) > 0" class="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-white/10">
+                                    +{{ topTask.project.base_score || topTask.project_score }} pts base
+                                </span>
+                            </div>
+                            <div v-else class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] text-[#7B82A0] bg-[#13151F] border border-[#2E3347]">
+                                <Globe class="w-3.5 h-3.5" />
+                                <span>Tarea Global</span>
+                            </div>
                         </div>
                         
                         <h1 class="text-[32px] md:text-[42px] font-bold text-[#F0F2F8] leading-tight mb-6 font-inter">
@@ -167,20 +185,24 @@ const submitForm = () => {
                             {{ topTask.notes }}
                         </p>
                         
-                        <div class="flex flex-wrap justify-center gap-2 mb-10">
-                            <span v-if="topTask.project" class="inline-flex items-center px-3 py-1 rounded-[8px] text-[12px] font-semibold border"
-                                  :style="{ backgroundColor: `${topTask.project.color}15`, color: topTask.project.color, borderColor: `${topTask.project.color}30` }">
-                                {{ topTask.project.name }}
-                                <span class="ml-1 opacity-70" v-if="topTask.project_score > 0">({{ topTask.project_score }} pts)</span>
-                            </span>
-                            <span v-for="criterion in topTask.criteria" :key="criterion.id"
-                                  class="inline-flex items-center px-3 py-1 rounded-[8px] text-[12px] font-semibold border"
-                                  :style="{ backgroundColor: `${criterion.color}15`, color: criterion.color, borderColor: `${criterion.color}30` }">
-                                {{ criterion.name }} ({{ criterion.points > 0 ? '+' : '' }}{{ criterion.points }})
-                            </span>
+                        <!-- Criteria Section (Separated from Project) -->
+                        <div v-if="topTask.criteria && topTask.criteria.length > 0" class="w-full max-w-[500px] mb-8">
+                            <div class="text-[11px] font-bold text-[#7B82A0] uppercase tracking-wider mb-2.5">
+                                Criterios Asignados
+                            </div>
+                            <div class="flex flex-wrap justify-center gap-2">
+                                <span v-for="criterion in topTask.criteria" :key="criterion.id"
+                                      class="inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold border"
+                                      :style="{ backgroundColor: `${criterion.color}15`, color: criterion.color, borderColor: `${criterion.color}30` }">
+                                    <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: criterion.color }"></span>
+                                    {{ criterion.name }}
+                                    <span class="font-mono font-bold opacity-80">({{ criterion.points > 0 ? '+' : '' }}{{ criterion.points }})</span>
+                                </span>
+                            </div>
                         </div>
                         
-                        <div class="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 mt-10">
+                        <!-- Actions -->
+                        <div class="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 mt-4">
                             <button @click="completeTask(topTask)" 
                                     class="w-full md:w-auto bg-[#6C63FF] hover:bg-[#6C63FF]/90 text-white px-10 py-5 rounded-[16px] text-[18px] font-bold transition-all shadow-[0_4px_12px_rgba(108,99,255,0.2)] hover:shadow-[0_0_20px_rgba(108,99,255,0.4)] flex items-center justify-center gap-3 transform hover:-translate-y-1">
                                 <Check class="w-6 h-6" />
@@ -194,8 +216,20 @@ const submitForm = () => {
                             </button>
                         </div>
                         
-                        <div class="mt-8 text-[#7B82A0] text-[14px] font-mono">
-                            Valor total: {{ topTask.total_score ?? ((topTask.criteria_sum_points || 0) + (topTask.project_score || 0)) }} pts
+                        <!-- Score Breakdown Footer -->
+                        <div class="mt-10 pt-6 border-t border-[#2E3347]/60 w-full max-w-[500px] flex items-center justify-around text-[13px] font-mono text-[#7B82A0]">
+                            <div v-if="topTask.project" class="flex flex-col items-center">
+                                <span class="text-[10px] text-[#7B82A0] uppercase tracking-wider mb-0.5">Base Proyecto</span>
+                                <span class="text-[#38BDF8] font-bold text-[15px]">+{{ topTask.project.base_score || topTask.project_score || 0 }} pts</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <span class="text-[10px] text-[#7B82A0] uppercase tracking-wider mb-0.5">Criterios</span>
+                                <span class="text-[#22C55E] font-bold text-[15px]">+{{ topTask.criteria_sum_points || 0 }} pts</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <span class="text-[10px] text-[#F59E0B] uppercase tracking-wider font-bold mb-0.5">Puntaje Total</span>
+                                <span class="text-[#F0F2F8] font-bold text-[16px]">{{ topTask.total_score ?? ((topTask.criteria_sum_points || 0) + (topTask.project_score || 0)) }} pts</span>
+                            </div>
                         </div>
                     </div>
                 </div>
