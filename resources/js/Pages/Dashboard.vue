@@ -1,9 +1,10 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import ResponsiveDialog from '@/Components/ResponsiveDialog.vue';
 import ProjectSelector from '@/Components/ProjectSelector.vue';
+import { useWorkingProject } from '@/Composables/useWorkingProject';
 import { Check, Flame, Trophy, Plus, PartyPopper, FastForward, RotateCcw } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -14,10 +15,34 @@ const props = defineProps({
     filters: Object,
 });
 
-const currentContext = ref(props.filters?.project_id || '');
+const { workingProjectId, setWorkingProject, syncWithProjects } = useWorkingProject();
+
+const currentContext = ref(
+    props.filters?.project_id 
+        ? (Number(props.filters.project_id) || props.filters.project_id) 
+        : (workingProjectId.value || '')
+);
+
+onMounted(() => {
+    syncWithProjects(props.projects);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has('project_id') && workingProjectId.value) {
+        currentContext.value = workingProjectId.value;
+        router.get(route('dashboard'), { project_id: workingProjectId.value }, { preserveState: true, replace: true });
+    } else if (props.filters?.project_id) {
+        setWorkingProject(props.filters.project_id);
+        currentContext.value = workingProjectId.value;
+    }
+});
+
+watch(workingProjectId, (newVal) => {
+    currentContext.value = newVal || '';
+});
 
 const changeContext = () => {
-    router.get(route('dashboard'), { project_id: currentContext.value }, { preserveState: true });
+    setWorkingProject(currentContext.value);
+    router.get(route('dashboard'), { project_id: currentContext.value || undefined }, { preserveState: true });
 };
 
 const topTask = computed(() => {
@@ -40,7 +65,7 @@ const resetSkipped = () => {
 // Form for creating tasks from Dashboard
 const form = useForm({
     title: '',
-    project_id: props.filters?.project_id || '',
+    project_id: workingProjectId.value || '',
     criteria_ids: [],
 });
 
@@ -49,6 +74,7 @@ const isDialogOpen = ref(false);
 const openCreateDialog = () => {
     form.reset();
     form.clearErrors();
+    form.project_id = workingProjectId.value || '';
     isDialogOpen.value = true;
 };
 

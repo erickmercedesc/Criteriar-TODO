@@ -1,9 +1,10 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import ResponsiveDialog from '@/Components/ResponsiveDialog.vue';
 import ProjectSelector from '@/Components/ProjectSelector.vue';
+import { useWorkingProject } from '@/Composables/useWorkingProject';
 import { Plus, Edit2, Trash2, Check, Flame, Square, CheckSquare } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -13,29 +14,53 @@ const props = defineProps({
     filters: Object,
 });
 
+const { workingProjectId, setWorkingProject, syncWithProjects } = useWorkingProject();
+
 const isMobile = ref(false);
 
 const checkScreen = () => {
     isMobile.value = window.innerWidth < 768;
 };
 
+// Filters
+const isShowingCompleted = ref(props.filters.completed);
+const currentProject = ref(
+    props.filters.project_id 
+        ? (Number(props.filters.project_id) || props.filters.project_id) 
+        : (workingProjectId.value || '')
+);
+
 onMounted(() => {
     checkScreen();
     window.addEventListener('resize', checkScreen);
+
+    syncWithProjects(props.projects);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has('project_id') && workingProjectId.value) {
+        currentProject.value = workingProjectId.value;
+        router.get(route('tasks.index'), { 
+            completed: isShowingCompleted.value ? 1 : 0,
+            project_id: workingProjectId.value 
+        }, { preserveState: true, replace: true });
+    }
 });
 
 onUnmounted(() => {
     window.removeEventListener('resize', checkScreen);
 });
 
-// Filters
-const isShowingCompleted = ref(props.filters.completed);
-const currentProject = ref(props.filters.project_id || '');
+watch(workingProjectId, (newVal) => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has('project_id')) {
+        currentProject.value = newVal || '';
+    }
+});
 
 const applyFilters = () => {
     router.get(route('tasks.index'), { 
         completed: isShowingCompleted.value ? 1 : 0,
-        project_id: currentProject.value
+        project_id: currentProject.value || undefined
     }, { preserveState: true });
 };
 
@@ -45,6 +70,7 @@ const toggleFilter = () => {
 };
 
 const changeProject = () => {
+    setWorkingProject(currentProject.value);
     applyFilters();
 };
 
@@ -53,7 +79,7 @@ const form = useForm({
     id: null,
     title: '',
     notes: '',
-    project_id: '',
+    project_id: workingProjectId.value || '',
     criteria_ids: [],
 });
 
@@ -63,6 +89,7 @@ const dialogMode = ref('create'); // 'create' or 'edit'
 const openCreateDialog = () => {
     form.reset();
     form.clearErrors();
+    form.project_id = workingProjectId.value || '';
     dialogMode.value = 'create';
     isDialogOpen.value = true;
 };

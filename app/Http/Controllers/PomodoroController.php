@@ -17,22 +17,39 @@ class PomodoroController extends Controller
         return "pomodoro_state_{$userId}";
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $skippedIds = Cache::get('skipped_tasks', []);
+        $projectId = $request->query('project_id');
 
         // Get Top Task
-        $topTask = auth()->user()->tasks()->with('criteria')
+        $topTask = $request->user()->tasks()->with('criteria', 'project')
             ->where('is_completed', false)
             ->whereNotIn('id', $skippedIds)
+            ->when($projectId, function ($query, $projectId) {
+                return $query->where('project_id', $projectId);
+            })
             ->withSum('criteria', 'points')
+            ->addSelect([
+                'project_score' => \Illuminate\Support\Facades\DB::table('project_scoring_criteria')
+                    ->join('scoring_criteria', 'project_scoring_criteria.scoring_criterion_id', '=', 'scoring_criteria.id')
+                    ->whereColumn('project_scoring_criteria.project_id', 'tasks.project_id')
+                    ->selectRaw('COALESCE(SUM(scoring_criteria.points), 0)')
+            ])
+            ->orderByDesc('project_score')
             ->orderByDesc('criteria_sum_points')
             ->orderBy('created_at')
             ->first();
 
+        $projects = $request->user()->projects()->orderBy('name')->get();
+
         return Inertia::render('Pomodoro/Index', [
             'topTask' => $topTask,
             'initialState' => $this->getState(),
+            'projects' => $projects,
+            'filters' => [
+                'project_id' => $projectId,
+            ],
         ]);
     }
 

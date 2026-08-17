@@ -1,14 +1,35 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import ResponsiveDialog from '@/Components/ResponsiveDialog.vue';
+import ProjectSelector from '@/Components/ProjectSelector.vue';
+import { useWorkingProject } from '@/Composables/useWorkingProject';
 import { Play, Pause, Square, Coffee, Brain, ArrowRight, Flame, SkipForward, AlertCircle } from 'lucide-vue-next';
 import axios from 'axios';
 
 const props = defineProps({
     topTask: Object,
     initialState: Object,
+    projects: Array,
+    filters: Object,
+});
+
+const { workingProjectId, setWorkingProject, syncWithProjects } = useWorkingProject();
+
+const currentContext = ref(
+    props.filters?.project_id 
+        ? (Number(props.filters.project_id) || props.filters.project_id) 
+        : (workingProjectId.value || '')
+);
+
+const changeContext = () => {
+    setWorkingProject(currentContext.value);
+    router.get(route('pomodoro.index'), { project_id: currentContext.value || undefined }, { preserveState: true });
+};
+
+watch(workingProjectId, (newVal) => {
+    currentContext.value = newVal || '';
 });
 
 const state = ref(props.initialState);
@@ -159,6 +180,17 @@ const skipComplexTask = async () => {
 };
 
 onMounted(() => {
+    syncWithProjects(props.projects);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has('project_id') && workingProjectId.value) {
+        currentContext.value = workingProjectId.value;
+        router.get(route('pomodoro.index'), { project_id: workingProjectId.value }, { preserveState: true, replace: true });
+    } else if (props.filters?.project_id) {
+        setWorkingProject(props.filters.project_id);
+        currentContext.value = workingProjectId.value;
+    }
+
     localTimer = setInterval(updateLocalTime, 1000);
     updateLocalTime();
     pollTimer = setInterval(fetchState, 15000);
@@ -195,13 +227,22 @@ const currentCycle = computed(() => (state.value.focus_cycles % 4) + 1);
 
     <AppLayout title="Pomodoro">
         <template #header>
-            <div class="flex items-center justify-between">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <h2 class="font-semibold text-[22px] text-[#F0F2F8] leading-tight font-inter">
                     Pomodoro Focus
                 </h2>
-                <!-- Cycle Indicator -->
-                <div class="bg-[#1A1D27] border border-[#2E3347] px-4 py-2 rounded-[12px] text-[13px] font-bold text-[#7B82A0]">
-                    Ciclo <span class="text-[#F0F2F8]">{{ currentCycle }}</span> <span class="opacity-50">/ 4</span>
+                <div class="flex items-center gap-3">
+                    <ProjectSelector 
+                        v-if="projects"
+                        v-model="currentContext" 
+                        :projects="projects"
+                        @change="changeContext"
+                        class="w-[150px] sm:w-[200px]"
+                    />
+                    <!-- Cycle Indicator -->
+                    <div class="bg-[#1A1D27] border border-[#2E3347] px-4 py-2 rounded-[12px] text-[13px] font-bold text-[#7B82A0]">
+                        Ciclo <span class="text-[#F0F2F8]">{{ currentCycle }}</span> <span class="opacity-50">/ 4</span>
+                    </div>
                 </div>
             </div>
         </template>
@@ -304,7 +345,14 @@ const currentCycle = computed(() => (state.value.focus_cycles % 4) + 1);
                     </div>
                     
                     <div class="flex-1">
-                        <div class="text-[12px] text-[#7B82A0] font-bold uppercase tracking-wider mb-1">Trabajando en</div>
+                        <div class="text-[12px] text-[#7B82A0] font-bold uppercase tracking-wider mb-1 flex items-center gap-2 flex-wrap">
+                            <span>Trabajando en</span>
+                            <span v-if="topTask.project" class="inline-flex items-center px-2.5 py-0.5 rounded-[6px] text-[11px] font-semibold border"
+                                  :style="{ backgroundColor: `${topTask.project.color}15`, color: topTask.project.color, borderColor: `${topTask.project.color}30` }">
+                                {{ topTask.project.name }}
+                                <span class="ml-1 opacity-70" v-if="topTask.project_score > 0">({{ topTask.project_score }} pts)</span>
+                            </span>
+                        </div>
                         <h3 class="text-[20px] font-bold text-[#F0F2F8]">{{ topTask.title }}</h3>
                         <p v-if="topTask.notes" class="mt-2 text-[14px] text-[#7B82A0] max-w-[600px] leading-relaxed whitespace-pre-line">
                             {{ topTask.notes }}
@@ -319,8 +367,9 @@ const currentCycle = computed(() => (state.value.focus_cycles % 4) + 1);
                     </Link>
                 </div>
                 
-                <div v-else class="mt-8 text-center text-[#7B82A0] text-[14px]">
-                    No tienes tareas pendientes. ¡Tómate el día libre!
+                <div v-else class="mt-8 text-center text-[#7B82A0] text-[14px] p-8 bg-[#1A1D27]/50 rounded-[20px] border border-[#2E3347]/50">
+                    <span v-if="currentContext">No tienes tareas pendientes en este proyecto. ¡Tómate un descanso o crea nuevas tareas!</span>
+                    <span v-else>No tienes tareas pendientes. ¡Tómate el día libre!</span>
                 </div>
 
             </div>
