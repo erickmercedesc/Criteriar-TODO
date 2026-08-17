@@ -36,6 +36,11 @@
   - Se desacopló la visualización del Proyecto de los Criterios en el Hero Card del Dashboard.
   - El Proyecto ahora se presenta en un Pill de contexto superior con icono `Folder` y puntos base (`+X pts base`), mientras que los Criterios asignados cuentan con una sección propia etiquetada con puntos de color.
   - Se agregó un desglose en el pie de la tarjeta mostrando claramente `Base Proyecto | Criterios | Puntaje Total`.
+- **Servidor MCP (Model Context Protocol) para Agentes de IA:**
+  - Se creó el servidor MCP oficial en el directorio `mcp-server/` utilizando `@modelcontextprotocol/sdk` sobre `stdio`.
+  - Expone 12 herramientas completas para que los agentes de IA (Antigravity, Claude Desktop, Cursor, Windsurf) puedan consultar la siguiente mejor tarea (`secondbrain_get_top_tasks`), listar/crear/actualizar/completar/eliminar tareas, gestionar proyectos y criterios, y consultar estadísticas de productividad.
+  - Se documentó la configuración en `mcp-server/README.md` y se añadió `mcp_config.json.example`.
+
 
 
 

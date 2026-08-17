@@ -72,10 +72,9 @@ Si eres un bot (ej. Planner Bot) que consume la API en nombre del usuario para c
    Todas las peticiones a `/api/*` requieren autorización usando un API Token generado por el usuario.
    Header requerido: `Authorization: Bearer <api_token>`
 
-3. **Acciones Críticas a tener en cuenta:**
-   - **`GET /api/tasks/top`**: Usa este endpoint en lugar de `GET /api/tasks` si tu objetivo como bot es decirle al usuario *exactamente* cuál es la siguiente tarea que debe hacer. Este endpoint ya ejecuta todo el motor de puntuación y resuelve empates.
-   - **Crear Tareas:** Intenta siempre asociarle al menos 1 o 2 `criteria_ids`. Una tarea sin criterios tiene 0 puntos, lo cual va en contra de la gamificación del sistema (se hundirá al fondo de la lista).
-   - **Completar Tareas (`PUT` con `is_completed: true`):** No envíes esta petición a la ligera. Al hacerlo, mutas permanentemente las Estadísticas Diarias (`daily_statistics`) del usuario. Hazlo únicamente cuando tengas confirmación de que la tarea fue hecha.
+7. **Integración MCP (Model Context Protocol):**
+   SecondBrain incluye un servidor MCP nativo en el directorio `mcp-server/` para clientes compatibles (Antigravity, Claude Desktop, Cursor, Windsurf). Expone herramientas como `secondbrain_get_top_tasks`, `secondbrain_create_task`, `secondbrain_complete_task`, etc. Consulta `mcp-server/README.md` para detalles de configuración.
 
 ---
 *Fin de la guía operativa de SecondBrain.*
+

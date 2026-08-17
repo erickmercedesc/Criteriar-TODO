@@ -26,7 +26,18 @@ class ScoringCriterionController extends Controller
     )]
     public function index(Request $request)
     {
-        $criteria = $request->user()->scoringCriteria()->orderByDesc('points')->get();
+        $projectId = $request->query('project_id');
+        $onlyGlobal = $request->boolean('global', false);
+
+        $criteria = $request->user()->scoringCriteria()
+            ->when($onlyGlobal, function ($q) {
+                return $q->whereNull('project_id');
+            })
+            ->when($projectId !== null, function ($q) use ($projectId) {
+                return $q->where('project_id', $projectId);
+            })
+            ->orderByDesc('points')
+            ->get();
 
         return response()->json([
             'data' => $criteria
@@ -46,6 +57,7 @@ class ScoringCriterionController extends Controller
                     new OA\Property(property: 'name', type: 'string', example: 'Ejercicio'),
                     new OA\Property(property: 'points', type: 'integer', example: 10),
                     new OA\Property(property: 'color', type: 'string', example: '#22C55E'),
+                    new OA\Property(property: 'project_id', type: 'integer', nullable: true, example: 1),
                     new OA\Property(property: 'is_complex_marker', type: 'boolean', example: false)
                 ]
             )
@@ -58,11 +70,18 @@ class ScoringCriterionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'project_id' => 'nullable|exists:projects,id',
             'name' => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('scoring_criteria', 'name')->where('user_id', $request->user()->id),
+                Rule::unique('scoring_criteria', 'name')
+                    ->where('user_id', $request->user()->id)
+                    ->where(function ($q) use ($request) {
+                        return $request->filled('project_id')
+                            ? $q->where('project_id', $request->input('project_id'))
+                            : $q->whereNull('project_id');
+                    }),
             ],
             'points' => 'required|integer|min:-100|max:100',
             'color' => 'required|string|size:7|starts_with:#',
@@ -114,6 +133,7 @@ class ScoringCriterionController extends Controller
                     new OA\Property(property: 'name', type: 'string', example: 'Ejercicio intenso'),
                     new OA\Property(property: 'points', type: 'integer', example: 20),
                     new OA\Property(property: 'color', type: 'string', example: '#22C55E'),
+                    new OA\Property(property: 'project_id', type: 'integer', nullable: true, example: 1),
                     new OA\Property(property: 'is_complex_marker', type: 'boolean', example: false)
                 ]
             )
@@ -127,13 +147,23 @@ class ScoringCriterionController extends Controller
     {
         abort_if($scoringCriterion->user_id !== $request->user()->id, 403, 'Unauthorized action.');
 
+        $targetProjectId = $request->has('project_id') ? $request->input('project_id') : $scoringCriterion->project_id;
+
         $validated = $request->validate([
+            'project_id' => 'nullable|exists:projects,id',
             'name' => [
                 'sometimes',
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('scoring_criteria', 'name')->where('user_id', $request->user()->id)->ignore($scoringCriterion->id),
+                Rule::unique('scoring_criteria', 'name')
+                    ->where('user_id', $request->user()->id)
+                    ->where(function ($q) use ($targetProjectId) {
+                        return $targetProjectId !== null
+                            ? $q->where('project_id', $targetProjectId)
+                            : $q->whereNull('project_id');
+                    })
+                    ->ignore($scoringCriterion->id),
             ],
             'points' => 'sometimes|required|integer|min:-100|max:100',
             'color' => 'sometimes|required|string|size:7|starts_with:#',

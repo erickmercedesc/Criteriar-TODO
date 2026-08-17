@@ -57,18 +57,14 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'color' => 'nullable|string|max:7',
-            'criteria_ids' => 'nullable|array',
-            'criteria_ids.*' => 'exists:scoring_criteria,id',
+            'base_score' => 'nullable|integer|between:0,1000',
         ]);
 
         $project = $request->user()->projects()->create([
             'name' => $validated['name'],
             'color' => $validated['color'] ?? null,
+            'base_score' => $validated['base_score'] ?? 0,
         ]);
-
-        if (!empty($validated['criteria_ids'])) {
-            $project->criteria()->sync($validated['criteria_ids']);
-        }
         
         $project->load('criteria');
 
@@ -115,7 +111,8 @@ class ProjectController extends Controller
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: 'name', type: 'string', example: 'Proyecto actualizado'),
-                    new OA\Property(property: 'color', type: 'string', example: '#00ff00')
+                    new OA\Property(property: 'color', type: 'string', example: '#00ff00'),
+                    new OA\Property(property: 'base_score', type: 'integer', example: 30)
                 ]
             )
         ),
@@ -131,20 +128,14 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'color' => 'nullable|string|max:7',
-            'criteria_ids' => 'nullable|array',
-            'criteria_ids.*' => 'exists:scoring_criteria,id',
+            'base_score' => 'nullable|integer|between:0,1000',
         ]);
 
-        if (array_key_exists('name', $validated) || array_key_exists('color', $validated)) {
-            $project->update([
-                'name' => $validated['name'] ?? $project->name,
-                'color' => array_key_exists('color', $validated) ? $validated['color'] : $project->color,
-            ]);
-        }
-
-        if (array_key_exists('criteria_ids', $validated)) {
-            $project->criteria()->sync($validated['criteria_ids'] ?? []);
-        }
+        $project->update([
+            'name' => $validated['name'] ?? $project->name,
+            'color' => array_key_exists('color', $validated) ? $validated['color'] : $project->color,
+            'base_score' => array_key_exists('base_score', $validated) ? ($validated['base_score'] ?? 0) : $project->base_score,
+        ]);
 
         $project->load('criteria');
 

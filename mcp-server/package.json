@@ -1,0 +1,26 @@
+{
+  "name": "secondbrain-mcp",
+  "version": "1.0.0",
+  "description": "Model Context Protocol (MCP) Server for SecondBrain TODO & Scoring Productivity System",
+  "main": "index.js",
+  "bin": {
+    "secondbrain-mcp": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "mcp",
+    "secondbrain",
+    "productivity",
+    "todo",
+    "scoring",
+    "pomodoro"
+  ],
+  "author": "SecondBrain",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0"
+  }
+}

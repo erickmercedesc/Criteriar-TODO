@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "secondbrain": {
+      "command": "node",
+      "args": ["c:/laragon/www/todo/mcp-server/index.js"],
+      "env": {
+        "SECONDBRAIN_URL": "http://localhost:8000",
+        "SECONDBRAIN_API_TOKEN": "TU_API_TOKEN_AQUI"
+      }
+    }
+  }
+}
