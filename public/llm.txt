@@ -40,7 +40,7 @@ Si un criterio tiene esto en `true` (ej. "Programación Profunda"), SecondBrain 
 Sirven para agrupar tareas por contexto (ej. "Trabajo", "Casa").
 - **Puntuación Base (`base_score`):** Cada proyecto puede tener una puntuación base fija (ej. 30 pts). Toda tarea creada dentro del proyecto hereda estos puntos automáticamente.
 - **Puntuación Total de Tarea:** Se calcula como `total_score = (project.base_score || 0) + suma(puntos_criterios_asignados)`.
-- **Regla de Prioridad:** El usuario puede tener un contexto "Global" (compiten todas las tareas) o enfocarse en un Proyecto específico (`working-project`). Si se enfoca en un Proyecto, SecondBrain asume que *solo* las tareas de ese proyecto compiten por el mayor puntaje para ser hechas ahora.
+- **Regla de Prioridad Jerárquica:** Las tareas se ordenan primero por la puntuación de su Proyecto (`project.base_score DESC`), y dentro de cada proyecto por los criterios propios de la tarea (`criteria_sum_points DESC`). El usuario también puede enfocarse en un Proyecto específico (`working-project`) para filtrar exclusivamente sus tareas.
 
 ### D. Estadísticas Diarias (Daily Statistics)
 Se crea un registro por usuario, por día (`date`). Almacena:

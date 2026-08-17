@@ -427,7 +427,8 @@ class McpController extends Controller
                     ->with('criteria', 'project')
                     ->withSum('criteria', 'points')
                     ->addSelect(['project_score' => Project::select('base_score')->whereColumn('projects.id', 'tasks.project_id')->limit(1)])
-                    ->orderByRaw('(COALESCE(project_score, 0) + COALESCE(criteria_sum_points, 0)) DESC')
+                    ->orderByRaw('COALESCE(project_score, 0) DESC, COALESCE(criteria_sum_points, 0) DESC')
+                    ->orderBy('created_at')
                     ->limit(3)
                     ->get();
 
@@ -445,7 +446,8 @@ class McpController extends Controller
                     ->addSelect(['project_score' => Project::select('base_score')->whereColumn('projects.id', 'tasks.project_id')->limit(1)])
                     ->when($minScore !== null, fn($q) => $q->havingRaw('(COALESCE(project_score, 0) + COALESCE(criteria_sum_points, 0)) >= ?', [$minScore]))
                     ->when($maxScore !== null, fn($q) => $q->havingRaw('(COALESCE(project_score, 0) + COALESCE(criteria_sum_points, 0)) <= ?', [$maxScore]))
-                    ->orderByRaw('(COALESCE(project_score, 0) + COALESCE(criteria_sum_points, 0)) DESC')
+                    ->orderByRaw('COALESCE(project_score, 0) DESC, COALESCE(criteria_sum_points, 0) DESC')
+                    ->orderBy('created_at')
                     ->get();
 
             case 'secondbrain_get_task':

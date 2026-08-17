@@ -44,6 +44,10 @@
   - Creado `.agents/skills/secondbrain-agent/SKILL.md` con las instrucciones operativas completas para que cualquier agente de IA o bot de planificación conozca la filosofía del sistema, los 4 runbooks de trabajo (Ejecución, Creación con specs en `notes`, Estructuración de proyectos y Revisión de productividad) y las reglas de negocio. Publicado además en `public/SKILL.md` para consumo vía URL.
 - **Ordenamiento de Proyectos por Puntos:**
   - Los proyectos ahora se ordenan en la tabla (`/projects`), en la API (`/api/projects`) y en el servidor MCP (`secondbrain_list_projects`) descendentemente por su puntuación base (`base_score DESC, name ASC`).
+- **Ordenamiento Jerárquico de Tareas en Dashboard y Sistema:**
+  - Se modificó la regla de ordenamiento de tareas en el Dashboard, Pomodoro, listado de Tareas, API REST y MCP.
+  - Las tareas ahora se ordenan **jerárquicamente**: primero por la puntuación del proyecto (`COALESCE(project_score, 0) DESC`), luego por la puntuación de los criterios de la tarea (`COALESCE(criteria_sum_points, 0) DESC`), y finalmente por fecha de creación (`created_at ASC`).
+
 
 
 

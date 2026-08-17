@@ -35,7 +35,7 @@ class PomodoroController extends Controller
                     ->whereColumn('projects.id', 'tasks.project_id')
                     ->limit(1)
             ])
-            ->orderByRaw('(COALESCE(project_score, 0) + COALESCE(criteria_sum_points, 0)) DESC')
+            ->orderByRaw('COALESCE(project_score, 0) DESC, COALESCE(criteria_sum_points, 0) DESC')
             ->orderBy('created_at')
             ->first();
 

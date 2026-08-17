@@ -35,8 +35,8 @@ class TaskController extends Controller
             ->when($projectId, function ($query, $projectId) {
                 return $query->where('project_id', $projectId);
             })
-            // Orders by combined total score (project + task criteria)
-            ->orderByRaw('(COALESCE(project_score, 0) + COALESCE(criteria_sum_points, 0)) DESC')
+            // Orders by project score first, then by task criteria points
+            ->orderByRaw('COALESCE(project_score, 0) DESC, COALESCE(criteria_sum_points, 0) DESC')
             // Fallback order by newest
             ->orderBy('created_at')
             ->get();

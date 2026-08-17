@@ -16,9 +16,9 @@ This skill guides AI agents on how to interact with **SecondBrain** via its nati
 
 SecondBrain is not a passive todo list; it is an **active decision engine** designed to eliminate human analysis paralysis and burnout through mathematics and gamification:
 
-1. **Deterministic Priority (The Math Rule):**
-   $$\text{Total Score} = (\text{Project Base Score}) + \sum (\text{Task Criteria Points})$$
-   - The task with the highest total score is **always** the next action to execute.
+1. **Hierarchical Priority (The Math Rule):**
+   $$\text{Ordering} = \text{Project Base Score DESC} \longrightarrow \sum (\text{Task Criteria Points}) \text{ DESC}$$
+   - Tasks are prioritized first by the Project's base score, and secondly by the task's own criteria points.
    - Agents should never manually guess or override task priority; always let SecondBrain's scoring engine determine the order.
 
 2. **Technical Specs in `notes`:**

@@ -95,7 +95,7 @@ class TaskController extends Controller
             ->when($maxScore !== null, function ($query) use ($maxScore) {
                 return $query->havingRaw('(COALESCE(project_score, 0) + COALESCE(criteria_sum_points, 0)) <= ?', [(int) $maxScore]);
             })
-            ->orderByRaw('(COALESCE(project_score, 0) + COALESCE(criteria_sum_points, 0)) DESC')
+            ->orderByRaw('COALESCE(project_score, 0) DESC, COALESCE(criteria_sum_points, 0) DESC')
             ->orderBy('created_at')
             ->get();
 
@@ -138,7 +138,7 @@ class TaskController extends Controller
                     ->whereColumn('projects.id', 'tasks.project_id')
                     ->limit(1)
             ])
-            ->orderByRaw('(COALESCE(project_score, 0) + COALESCE(criteria_sum_points, 0)) DESC')
+            ->orderByRaw('COALESCE(project_score, 0) DESC, COALESCE(criteria_sum_points, 0) DESC')
             ->orderBy('created_at')
             ->take(3)
             ->get();

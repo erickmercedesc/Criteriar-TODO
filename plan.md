@@ -103,7 +103,7 @@ Una tarea marcada como "Genera dinero" + "Trabajo" = **30 puntos**.
 3. En `/projects/{id}/scoring-criteria`, define criterios específicos para ese proyecto.
 4. Al crear una tarea, selecciona el Proyecto y el formulario ofrece automáticamente los Criterios Globales + los específicos del Proyecto.
 5. El sistema calcula `total_score = project.base_score + suma(criterios)`.
-6. Las tareas se ordenan globalmente por `total_score DESC`.
+6. Las tareas se ordenan jerárquicamente: primero por puntuación del proyecto (`project.base_score DESC`), y luego por la suma de criterios de la tarea (`criteria_sum_points DESC`).
 7. Al completar una tarea, el total de puntos se suma a las estadísticas diarias.
 
 ---
