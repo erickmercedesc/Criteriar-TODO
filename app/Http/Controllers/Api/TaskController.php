@@ -80,8 +80,11 @@ class TaskController extends Controller
             }, function ($query) {
                 return $query->where('is_completed', false);
             })
-            ->when($projectId, function ($query, $projectId) {
-                return $query->where('project_id', $projectId);
+            ->when($projectId !== null && $projectId !== '', function ($query) use ($projectId) {
+                if ($projectId === 'none' || $projectId === 'null' || $projectId === '0') {
+                    return $query->whereNull('tasks.project_id');
+                }
+                return $query->where('tasks.project_id', $projectId);
             })
             ->when($criteriaIds, function ($query, $criteriaIds) {
                 $ids = is_string($criteriaIds) ? explode(',', $criteriaIds) : $criteriaIds;
@@ -115,8 +118,8 @@ class TaskController extends Controller
                 name: 'project_id',
                 in: 'query',
                 required: false,
-                description: 'Filtrar por ID de proyecto',
-                schema: new OA\Schema(type: 'integer')
+                description: 'Filtrar por ID de proyecto (o \'none\' para sin proyecto)',
+                schema: new OA\Schema(type: 'string')
             )
         ],
         responses: [
@@ -129,8 +132,11 @@ class TaskController extends Controller
 
         $tasks = $request->user()->tasks()->with('criteria', 'project')
             ->where('is_completed', false)
-            ->when($projectId, function ($query, $projectId) {
-                return $query->where('project_id', $projectId);
+            ->when($projectId !== null && $projectId !== '', function ($query) use ($projectId) {
+                if ($projectId === 'none' || $projectId === 'null' || $projectId === '0') {
+                    return $query->whereNull('tasks.project_id');
+                }
+                return $query->where('tasks.project_id', $projectId);
             })
             ->withSum('criteria', 'points')
             ->addSelect([

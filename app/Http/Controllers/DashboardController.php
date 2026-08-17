@@ -24,8 +24,11 @@ class DashboardController extends Controller
         $pendingTasks = $request->user()->tasks()->with('criteria', 'project')
             ->where('is_completed', false)
             ->whereNotIn('id', $skippedIds)
-            ->when($projectId, function ($query, $projectId) {
-                return $query->where('project_id', $projectId);
+            ->when($projectId !== null && $projectId !== '', function ($query) use ($projectId) {
+                if ($projectId === 'none' || $projectId === 'null' || $projectId === '0') {
+                    return $query->whereNull('tasks.project_id');
+                }
+                return $query->where('tasks.project_id', $projectId);
             })
             ->withSum('criteria', 'points')
             ->addSelect([
@@ -50,7 +53,7 @@ class DashboardController extends Controller
         $criteria = $request->user()->scoringCriteria()->orderBy('name')->get();
 
         // 5. Projects
-        $projects = $request->user()->projects()->with('criteria')->orderBy('name')->get();
+        $projects = $request->user()->projects()->with('criteria')->orderByDesc('base_score')->orderBy('name')->get();
 
         return Inertia::render('Dashboard', [
             'pendingTasks' => $pendingTasks,

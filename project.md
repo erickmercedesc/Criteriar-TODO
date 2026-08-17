@@ -47,6 +47,10 @@
 - **Ordenamiento Jerárquico de Tareas en Dashboard y Sistema:**
   - Se modificó la regla de ordenamiento de tareas en el Dashboard, Pomodoro, listado de Tareas, API REST y MCP.
   - Las tareas ahora se ordenan **jerárquicamente**: primero por la puntuación del proyecto (`COALESCE(project_score, 0) DESC`), luego por la puntuación de los criterios de la tarea (`COALESCE(criteria_sum_points, 0) DESC`), y finalmente por fecha de creación (`created_at ASC`).
+- **Filtro de Tareas Sin Proyecto (`project_id = none`):**
+  - Se añadió la opción **"Sin Proyecto (Tareas sin asignar)"** en el selector de proyectos (`ProjectSelector.vue`).
+  - Soporte en backend en `TaskController`, `DashboardController`, `PomodoroController`, `Api/TaskController` y `Api/McpController` para filtrar tareas con `project_id IS NULL` cuando se recibe `project_id = 'none'`.
+
 
 
 

@@ -79,7 +79,7 @@ const form = useForm({
     id: null,
     title: '',
     notes: '',
-    project_id: workingProjectId.value || '',
+    project_id: (workingProjectId.value && workingProjectId.value !== 'none') ? workingProjectId.value : '',
     criteria_ids: [],
 });
 
@@ -104,7 +104,7 @@ const dialogMode = ref('create'); // 'create' or 'edit'
 const openCreateDialog = () => {
     form.reset();
     form.clearErrors();
-    form.project_id = workingProjectId.value || '';
+    form.project_id = (workingProjectId.value && workingProjectId.value !== 'none') ? workingProjectId.value : '';
     dialogMode.value = 'create';
     isDialogOpen.value = true;
 };

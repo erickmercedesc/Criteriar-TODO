@@ -423,7 +423,12 @@ class McpController extends Controller
                 $projectId = $args['project_id'] ?? null;
                 return $user->tasks()
                     ->where('is_completed', false)
-                    ->when($projectId !== null, fn($q) => $q->where('tasks.project_id', $projectId))
+                    ->when($projectId !== null && $projectId !== '', function ($q) use ($projectId) {
+                        if ($projectId === 'none' || $projectId === 'null' || $projectId === 0 || $projectId === '0') {
+                            return $q->whereNull('tasks.project_id');
+                        }
+                        return $q->where('tasks.project_id', $projectId);
+                    })
                     ->with('criteria', 'project')
                     ->withSum('criteria', 'points')
                     ->addSelect(['project_score' => Project::select('base_score')->whereColumn('projects.id', 'tasks.project_id')->limit(1)])
@@ -440,7 +445,12 @@ class McpController extends Controller
 
                 return $user->tasks()
                     ->where('is_completed', $isCompleted)
-                    ->when($projectId !== null, fn($q) => $q->where('tasks.project_id', $projectId))
+                    ->when($projectId !== null && $projectId !== '', function ($q) use ($projectId) {
+                        if ($projectId === 'none' || $projectId === 'null' || $projectId === 0 || $projectId === '0') {
+                            return $q->whereNull('tasks.project_id');
+                        }
+                        return $q->where('tasks.project_id', $projectId);
+                    })
                     ->with('criteria', 'project')
                     ->withSum('criteria', 'points')
                     ->addSelect(['project_score' => Project::select('base_score')->whereColumn('projects.id', 'tasks.project_id')->limit(1)])

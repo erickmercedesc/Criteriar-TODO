@@ -32,8 +32,11 @@ class TaskController extends Controller
             }, function ($query) {
                 return $query->where('is_completed', false);
             })
-            ->when($projectId, function ($query, $projectId) {
-                return $query->where('project_id', $projectId);
+            ->when($projectId !== null && $projectId !== '', function ($query) use ($projectId) {
+                if ($projectId === 'none' || $projectId === 'null' || $projectId === '0') {
+                    return $query->whereNull('tasks.project_id');
+                }
+                return $query->where('tasks.project_id', $projectId);
             })
             // Orders by project score first, then by task criteria points
             ->orderByRaw('COALESCE(project_score, 0) DESC, COALESCE(criteria_sum_points, 0) DESC')
@@ -42,7 +45,7 @@ class TaskController extends Controller
             ->get();
 
         $allCriteria = $request->user()->scoringCriteria()->orderBy('name')->get();
-        $projects = $request->user()->projects()->with('criteria')->orderBy('name')->get();
+        $projects = $request->user()->projects()->with('criteria')->orderByDesc('base_score')->orderBy('name')->get();
 
         return Inertia::render('Tasks/Index', [
             'tasks' => $tasks,

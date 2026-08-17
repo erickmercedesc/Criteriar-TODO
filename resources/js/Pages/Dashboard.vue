@@ -65,7 +65,7 @@ const resetSkipped = () => {
 // Form for creating tasks from Dashboard
 const form = useForm({
     title: '',
-    project_id: workingProjectId.value || '',
+    project_id: (workingProjectId.value && workingProjectId.value !== 'none') ? workingProjectId.value : '',
     criteria_ids: [],
 });
 
@@ -89,7 +89,7 @@ const isDialogOpen = ref(false);
 const openCreateDialog = () => {
     form.reset();
     form.clearErrors();
-    form.project_id = workingProjectId.value || '';
+    form.project_id = (workingProjectId.value && workingProjectId.value !== 'none') ? workingProjectId.value : '';
     isDialogOpen.value = true;
 };
 

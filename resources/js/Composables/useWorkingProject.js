@@ -51,6 +51,9 @@ export function useWorkingProject() {
         if (!workingProjectId.value || !Array.isArray(availableProjects) || availableProjects.length === 0) {
             return;
         }
+        if (workingProjectId.value === 'none') {
+            return;
+        }
         const exists = availableProjects.some(p => p.id === workingProjectId.value || String(p.id) === String(workingProjectId.value));
         if (!exists) {
             setWorkingProject('');
