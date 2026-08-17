@@ -238,7 +238,7 @@ const deleteTask = (task) => {
 
                                 <!-- Score -->
                                 <td class="px-6 py-4 whitespace-nowrap text-[16px] text-[#F0F2F8] font-mono font-medium">
-                                    {{ task.criteria_sum_points ?? 0 }} pts
+                                    {{ task.total_score ?? ((task.criteria_sum_points || 0) + (task.project_score || 0)) }} pts
                                 </td>
 
                                 <!-- Actions -->
@@ -304,7 +304,7 @@ const deleteTask = (task) => {
 
                                 <div class="flex items-center justify-between">
                                     <div class="text-[14px] font-mono font-medium text-[#F0F2F8]">
-                                        Total: {{ task.criteria_sum_points ?? 0 }} pts
+                                        Total: {{ task.total_score ?? ((task.criteria_sum_points || 0) + (task.project_score || 0)) }} pts
                                     </div>
                                     <div class="flex items-center gap-3">
                                         <button @click="openEditDialog(task)" class="text-[#38BDF8] hover:opacity-80">

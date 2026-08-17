@@ -34,8 +34,7 @@ class DashboardController extends Controller
                     ->whereColumn('project_scoring_criteria.project_id', 'tasks.project_id')
                     ->selectRaw('COALESCE(SUM(scoring_criteria.points), 0)')
             ])
-            ->orderByDesc('project_score')
-            ->orderByDesc('criteria_sum_points')
+            ->orderByRaw('(COALESCE(project_score, 0) + COALESCE(criteria_sum_points, 0)) DESC')
             ->orderBy('created_at')
             ->get();
 

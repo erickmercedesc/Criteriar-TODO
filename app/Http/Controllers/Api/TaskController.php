@@ -91,13 +91,12 @@ class TaskController extends Controller
                 });
             })
             ->when($minScore !== null, function ($query) use ($minScore) {
-                return $query->having('criteria_sum_points', '>=', (int) $minScore);
+                return $query->havingRaw('(COALESCE(project_score, 0) + COALESCE(criteria_sum_points, 0)) >= ?', [(int) $minScore]);
             })
             ->when($maxScore !== null, function ($query) use ($maxScore) {
-                return $query->having('criteria_sum_points', '<=', (int) $maxScore);
+                return $query->havingRaw('(COALESCE(project_score, 0) + COALESCE(criteria_sum_points, 0)) <= ?', [(int) $maxScore]);
             })
-            ->orderByDesc('project_score')
-            ->orderByDesc('criteria_sum_points')
+            ->orderByRaw('(COALESCE(project_score, 0) + COALESCE(criteria_sum_points, 0)) DESC')
             ->orderBy('created_at')
             ->get();
 
@@ -141,8 +140,7 @@ class TaskController extends Controller
                     ->whereColumn('project_scoring_criteria.project_id', 'tasks.project_id')
                     ->selectRaw('COALESCE(SUM(scoring_criteria.points), 0)')
             ])
-            ->orderByDesc('project_score')
-            ->orderByDesc('criteria_sum_points')
+            ->orderByRaw('(COALESCE(project_score, 0) + COALESCE(criteria_sum_points, 0)) DESC')
             ->orderBy('created_at')
             ->take(3)
             ->get();
@@ -292,7 +290,12 @@ class TaskController extends Controller
             $task->completed_at = $newIsCompleted ? now() : null;
 
             $userId = $request->user()->id;
-            $points = $task->criteria()->sum('points');
+            $taskPoints = (int) $task->criteria()->sum('points');
+            $projectPoints = $task->project_id ? (int) \Illuminate\Support\Facades\DB::table('project_scoring_criteria')
+                ->join('scoring_criteria', 'project_scoring_criteria.scoring_criterion_id', '=', 'scoring_criteria.id')
+                ->where('project_scoring_criteria.project_id', $task->project_id)
+                ->sum('scoring_criteria.points') : 0;
+            $points = $taskPoints + $projectPoints;
             $multiplier = $newIsCompleted ? 1 : -1;
 
             \App\Models\DailyStatistic::adjustStat($userId, now()->toDateString(), 'tasks_completed', 1 * $multiplier);

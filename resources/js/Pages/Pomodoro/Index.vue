@@ -384,7 +384,7 @@ const currentCycle = computed(() => (state.value.focus_cycles % 4) + 1);
                             {{ topTask.notes }}
                         </p>
                         <div class="mt-3 text-[14px] text-[#7B82A0]">
-                            Valor: {{ topTask.criteria_sum_points ?? 0 }} pts
+                            Valor: {{ topTask.total_score ?? ((topTask.criteria_sum_points || 0) + (topTask.project_score || 0)) }} pts
                         </div>
                     </div>
 

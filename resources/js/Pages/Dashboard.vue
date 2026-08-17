@@ -180,7 +180,7 @@ const submitForm = () => {
                         </div>
                         
                         <div class="mt-8 text-[#7B82A0] text-[14px] font-mono">
-                            Valor total: {{ topTask.criteria_sum_points ?? 0 }} pts
+                            Valor total: {{ topTask.total_score ?? ((topTask.criteria_sum_points || 0) + (topTask.project_score || 0)) }} pts
                         </div>
                     </div>
                 </div>
