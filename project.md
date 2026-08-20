@@ -4,7 +4,7 @@
 - [x] **Fase 3 — Criterios de Scoring**: CRUD completo implementado con validaciones y ResponsiveDialog para soportar modal en desktop y bottom-sheet en mobile. Paleta curada de colores utilizada. (Completado: 2026-07-21)
 
 ## Fases Pendientes
-- [x] **Fase 1 — Setup base (Desactivar registro público)**. Registro público desactivado en Fortify. Welcome page y rutas ajustadas para solo login. (Completado: 2026-08-20)
+- [ ] **Fase 1 — Setup base (Desactivar registro público)**. *(Revertido: registro público reactivado para multiusuario)*
 - [ ] Fase 2 — Migraciones restantes (`tasks`, `debts`, etc).
 - [x] Fase 3 — Criterios de Scoring: CRUD completo implementado con validaciones y ResponsiveDialog para soportar modal en desktop y bottom-sheet en mobile. Paleta curada de colores utilizada. (Completado: 2026-07-21)
 - [ ] Fase 6 — Polish
@@ -27,12 +27,12 @@
 - **Persistencia Global de Proyecto Activo (`working-project`):** Se implementó el composable `useWorkingProject.js` para persistir en `LocalStorage` el ID del proyecto de trabajo seleccionado (`working-project`) y sincronizarlo de forma reactiva y en tiempo real (incluso entre pestañas del navegador). El Dashboard, Pomodoro y la Lista de Tareas (`/tasks`) sincronizan automáticamente su contexto con este proyecto, preseleccionándolo en la creación de tareas y filtrando las tareas pendientes y topTask en consecuencia. La navegación directa desde el listado de proyectos (`/projects`) respeta la visualización puntual sin alterar el `working-project` activo.
 - **Database Seeder Integral para Pruebas:** Se enriqueció `DatabaseSeeder.php` para sembrar datos representativos del usuario de prueba (`test@example.com` / `password`), incluyendo un set completo de Criterios (con puntos positivos, negativos y marcador complejo), Proyectos con criterios asignados, Tareas pendientes/completadas con criterios asociados y notas técnicas, así como datos de Estadísticas Diarias para visualización de métricas.
 - **Modal de Finalización de Pomodoro & Break con Control de Alarma:** Al terminar una sesión de Focus o un Descanso (corto/largo), la alarma de audio se ejecuta en bucle continuo y se despliega automáticamente un modal (`ResponsiveDialog`) con el mensaje y diseño alusivo ("¡Pomodoro Terminado!" o "¡Descanso Terminado!"). El usuario puede detener la alarma con un solo clic, iniciar de inmediato la siguiente fase o tomar decisiones sobre tareas complejas.
-- **Fase 1 — Desactivar registro público:** Se desactivó `Features::registration()` en `config/fortify.php`, se removió el botón y prop `canRegister` de `Welcome.vue`, y se quitó `canRegister` de `routes/web.php`. La app ahora es privada: solo login.
+- **Herencia y Suma de Puntuación de Proyectos en Tareas:** Las tareas ahora heredan automáticamente los puntos de los criterios asignados a su Proyecto como su puntuación base predeterminada, sumando dinámicamente los criterios particulares que se le agreguen a la tarea. Se unificó el cálculo (`total_score`) en el modelo `Task`, en las consultas backend con ordenamiento global combinado (`(project_score + criteria_sum_points) DESC`), en la acumulación de estadísticas diarias al completar tareas, y en la visualización en el Dashboard, Pomodoro y Lista de Tareas.
+- **Registro público activo:** Se mantuvo `Features::registration()` habilitado en Fortify para soportar la arquitectura multiusuario. La landing page (`Welcome.vue`) conserva el botón de registro y la ruta `/register` sigue disponible.
 - **Separación de Criterios Globales y Criterios por Proyecto:**
   - Se estructuró un modelo híbrido donde los criterios con `project_id = null` son **Globales** (gestionados en `/scoring-criteria` y disponibles para cualquier tarea) y los criterios con `project_id = X` son **Específicos del Proyecto** (gestionados en la ruta dedicada `/projects/{project_id}/scoring-criteria`).
   - Los Proyectos cuentan con un campo `base_score` configurable directamente en `/projects`.
   - Los modales de creación/edición de tareas en el Dashboard y Lista de Tareas computan reactivamente los criterios disponibles según el proyecto seleccionado (Globales + Proyecto) y limpian automáticamente los criterios huérfanos si el usuario cambia de proyecto.
-- **Rediseño Visual de la Tarjeta Principal del Dashboard:**
   - Se desacopló la visualización del Proyecto de los Criterios en el Hero Card del Dashboard.
   - El Proyecto ahora se presenta en un Pill de contexto superior con icono `Folder` y puntos base (`+X pts base`), mientras que los Criterios asignados cuentan con una sección propia etiquetada con puntos de color.
   - Se agregó un desglose en el pie de la tarjeta mostrando claramente `Base Proyecto | Criterios | Puntaje Total`.

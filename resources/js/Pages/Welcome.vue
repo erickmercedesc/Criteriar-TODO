@@ -6,6 +6,9 @@ defineProps({
     canLogin: {
         type: Boolean,
     },
+    canRegister: {
+        type: Boolean,
+    },
     laravelVersion: {
         type: String,
         required: true,
@@ -45,9 +48,17 @@ defineProps({
                     <template v-else>
                         <Link
                             :href="route('login')"
-                            class="bg-[#6C63FF] hover:bg-[#5A51D1] text-white px-5 py-2.5 rounded-[8px] font-bold transition-all shadow-[0_4px_12px_rgba(108,99,255,0.2)] hover:shadow-[0_0_20px_rgba(108,99,255,0.4)] transform hover:-translate-y-0.5"
+                            class="text-[#7B82A0] font-semibold hover:text-[#F0F2F8] transition-colors px-4 py-2"
                         >
                             Iniciar sesión
+                        </Link>
+
+                        <Link
+                            v-if="canRegister"
+                            :href="route('register')"
+                            class="bg-[#6C63FF] hover:bg-[#5A51D1] text-white px-5 py-2.5 rounded-[8px] font-bold transition-all shadow-[0_4px_12px_rgba(108,99,255,0.2)] hover:shadow-[0_0_20px_rgba(108,99,255,0.4)] transform hover:-translate-y-0.5"
+                        >
+                            Comenzar Ahora
                         </Link>
                     </template>
                 </nav>
@@ -82,10 +93,10 @@ defineProps({
                 </Link>
                 <Link
                     v-else
-                    :href="route('login')"
+                    :href="route('register')"
                     class="inline-flex items-center justify-center gap-3 bg-[#6C63FF] text-white px-8 py-4 rounded-[12px] text-[18px] font-bold transition-all shadow-[0_4px_12px_rgba(108,99,255,0.3)] hover:shadow-[0_0_25px_rgba(108,99,255,0.5)] transform hover:-translate-y-1"
                 >
-                    Iniciar sesión <ArrowRight class="w-5 h-5" />
+                    Comenzar Ahora - Es Gratis <ArrowRight class="w-5 h-5" />
                 </Link>
             </div>
         </main>
