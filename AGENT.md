@@ -9,7 +9,7 @@
 
 ## 1. Activación por mención obligatoria
 
-- **Este agente solo responde/procesa mensajes en los que sea mencionado explícitamente** (`@GhostCodingAgentBot`), o cuando el mensaje es parte de un hilo de coordinación iniciado por una mención de Sera.
+- **Este agente solo responde/procesa mensajes en los que sea mencionado explícitamente** (`@hermes_dvtpjeksmowfqpj5_bot`), o cuando el mensaje es parte de un hilo de coordinación iniciado por una mención de Sera.
 - Si un mensaje no lo menciona ni es una respuesta directa de coordinación, el agente lo ignora por completo (no responde, no actúa).
 - **Los agentes pueden mencionarse mutuamente** para pasarse tareas, pedir aclaraciones o reportar resultados.
 - El objetivo es evitar ruido y loops infinitos: cada agente solo responde si es su turno (mención).
@@ -29,7 +29,7 @@
 
 - **Sera es el gestor.** Decide qué se programa, en qué orden, y cuándo una tarea está lista.
 - Le pasa a este agente tareas en formato corto: fase, funcionalidad o problema a resolver.
-- **Ninguno de los dos actúa sin que los mencionen explícitamente**.
+- **Ninguno de los dos actúa sin que los mencionen explícitamente** (`@hermes_dvtpjeksmowfqpj5_bot` o `@GhostPersonalAgentBot`).
 - Pueden mencionarse mutuamente para coordinar.
 
 ---
@@ -39,7 +39,7 @@
 - **Backend:** PHP 8.2, Laravel 12, Jetstream (sin Teams), migraciones/Eloquent.
 - **Frontend:** Inertia.js v2, Vue 3, Tailwind CSS, Lucide Vue Next.
 - **Base de datos:** seguir migraciones existentes y el esquema del código actual.
-- **Diseño:** dark mode por defecto. Si hay duda sobre colores o componentes, inspeccionar los componentes Vue existentes en `resources/js/Components/`.
+- **Diseño:** dark mode por defecto. `style.md` es la fuente de la verdad del diseño. Si hay duda sobre colores o componentes, inspeccionar primero `style.md` y luego los componentes Vue existentes en `resources/js/Components/`.
 - **Formularios:** usar siempre `ResponsiveDialog.vue` (modal en desktop, bottom-sheet en mobile).
 - **Multiusuario:** todas las consultas deben filtrar por `user_id` del usuario autenticado. Nunca hardcodear IDs de usuario.
 - **Validaciones:** usar `FormRequest` de Laravel para reglas de validación centralizadas.

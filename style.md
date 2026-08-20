@@ -1,344 +1,204 @@
-# SecondBrain — Guía de Diseño (style.md)
+# SecondBrain — Style.me (Fuente de la Verdad del Diseño)
 
-> Documento de referencia de diseño. Sin código. Define colores, tipografía, espaciado,
-> componentes y comportamiento responsivo para la PWA.
+> Este documento reemplaza a `style.md`. Es la referencia única para cualquier cambio de UI/UX en SecondBrain.
+> Actualizado: Agosto 2026.
 
 ---
 
 ## 1. Filosofía de Diseño
 
-- **Minimalista pero expresivo**: interfaces limpias, sin ruido visual, pero con jerarquía clara.
-- **Orientado a la acción**: lo importante siempre visible de inmediato (tarea top, deuda urgente).
-- **Context-aware**: la misma información se presenta de forma distinta según el dispositivo.
-- **Dark mode por defecto**: app de uso personal/productividad → dark mode reduce fatiga visual.
+- **Dark mode nativo.** La app se usa como herramienta personal diaria; el fondo oscuro reduce fatiga.
+- **Enfoque sobre ornamentación.** La acción importante (top task, temporizador) siempre es visible de inmediato.
+- **Jerarquía por color.** El morado/accento indica acción, el naranja indica énfasis/urgencia, el verde éxito, el rojo peligro/destrucción.
+- **Mobile-first responsivo.** Desktop usa sidebar + tablas; mobile usa bottom nav + cards + bottom sheets.
+- **Consistencia sobre creatividad.** No introducir nuevos colores, espaciados o bordes sin actualizar este documento.
 
 ---
 
 ## 2. Paleta de Colores
 
-### 2.1 Base (Dark Mode)
+Usar siempre los tokens CSS. Nunca colores Tailwind genéricos como `bg-gray-800`, `text-red-500`, etc.
 
-| Token                  | Valor       | Uso                                              |
-| ---------------------- | ----------- | ------------------------------------------------ |
-| `--color-bg`           | `#0F1117`   | Fondo principal de la app                        |
-| `--color-surface`      | `#1A1D27`   | Cards, tablas, paneles                           |
-| `--color-surface-2`    | `#22263A`   | Hover de filas, surface secundario               |
-| `--color-border`       | `#2E3347`   | Bordes sutiles                                   |
-| `--color-text-primary` | `#F0F2F8`   | Texto principal                                  |
-| `--color-text-muted`   | `#7B82A0`   | Texto secundario, labels, placeholders           |
+| Token | Valor | Uso |
+|-------|-------|-----|
+| `--color-bg` | `#0F1117` | Fondo principal de la app |
+| `--color-surface` | `#1A1D27` | Cards, sidebar, tablas, modales, bottom sheets |
+| `--color-surface-2` | `#22263A` | Hover de filas, fondo secundario, inputs enfocados |
+| `--color-border` | `#2E3347` | Bordes sutiles, divisores |
+| `--color-text-primary` | `#F0F2F8` | Texto principal, títulos |
+| `--color-text-muted` | `#7B82A0` | Labels, placeholders, descripciones, iconos inactivos |
+| `--color-primary` | `#6C63FF` | Botones CTA, links activos, acentos principales |
+| `--color-primary-soft` | `#6C63FF26` | Fondos suaves de elementos activos |
+| `--color-success` | `#22C55E` | Tareas completadas, estados positivos |
+| `--color-warning` | `#F59E0B` | Top task destacada, estados de atención |
+| `--color-danger` | `#EF4444` | Acciones destructivas, errores |
+| `--color-info` | `#38BDF8` | Información neutral, puntos base de proyecto |
 
-### 2.2 Colores de Acento
+### Reglas de uso de color
 
-| Token                  | Valor       | Uso                                              |
-| ---------------------- | ----------- | ------------------------------------------------ |
-| `--color-primary`      | `#6C63FF`   | Acciones primarias, botones CTA, links activos   |
-| `--color-primary-soft` | `#6C63FF26` | Fondos suaves de elementos activos               |
-| `--color-success`      | `#22C55E`   | Estado pagado, tarea completada                  |
-| `--color-warning`      | `#F59E0B`   | Deuda próxima a vencer, estado "por vencer"      |
-| `--color-danger`       | `#EF4444`   | Deuda en mora, acciones destructivas             |
-| `--color-info`         | `#38BDF8`   | Información neutral, badges de tipo              |
-
-### 2.3 Colores de Estado para Deudas
-
-| Estado       | Color               | Significado                          |
-| ------------ | ------------------- | ------------------------------------ |
-| `active`     | `--color-info`      | Deuda activa y al día                |
-| `overdue`    | `--color-danger`    | En mora — pagos vencidos sin cubrir  |
-| `paid`       | `--color-success`   | Deuda saldada completamente          |
-| "por vencer" | `--color-warning`   | Vence en los próximos 5 días         |
-
-### 2.4 Score Badge (TODO)
-
-Los badges de puntaje usan un color basado en el valor relativo del score:
-
-| Rango de puntaje | Color                |
-| ---------------- | -------------------- |
-| Mayor puntaje    | `--color-primary`    |
-| Puntaje medio    | `--color-warning`    |
-| Puntaje bajo     | `--color-text-muted` |
+- Fondos: `bg-[#0F1117]`, `bg-[#1A1D27]`, `bg-[#22263A]`.
+- Texto: `text-[#F0F2F8]` para títulos, `text-[#7B82A0]` para labels.
+- Bordes: `border-[#2E3347]`.
+- Acentos: primario `#6C63FF`, énfasis `#F59E0B`, éxito `#22C55E`, peligro `#EF4444`, info `#38BDF8`.
+- Badges de criterios: `backgroundColor: `${color}15`, `color`, `borderColor: `${color}30`.
+- Badges de proyecto: `backgroundColor: `${color}20`, `color`, `borderColor: `${color}40`.
 
 ---
 
 ## 3. Tipografía
 
-- **Fuente principal**: `Inter` (Google Fonts)
-- **Fuente mono** (para números clave, montos): `JetBrains Mono`
+- **Principal:** `Inter` (sans-serif).
+- **Mono:** `JetBrains Mono` (puntajes, montos, contadores).
 
-### Escala tipográfica
-
-| Rol              | Tamaño | Peso | Uso                                          |
-| ---------------- | ------ | ---- | -------------------------------------------- |
-| Display / Hero   | `28px` | 700  | Tarea top destacada, título de módulo        |
-| Heading 1        | `22px` | 600  | Títulos de página                            |
-| Heading 2        | `18px` | 600  | Secciones dentro de una página              |
-| Body             | `15px` | 400  | Texto de contenido general                   |
-| Body Small       | `13px` | 400  | Texto secundario, descripciones              |
-| Label / Badge    | `11px` | 600  | Badges, tags, labels de estado               |
-| Mono / Monto     | `16px` | 500  | Montos en DOP, scores numéricos              |
+| Rol | Tamaño | Peso | Uso |
+|-----|--------|------|-----|
+| Hero / Top Task | `32px` / `42px` md | 700 | Tarea principal del Dashboard |
+| H1 página | `22px` | 600 | Títulos de vista |
+| H2 sección | `18px` | 600 | Subtítulos |
+| Body | `15px` | 400 | Contenido general |
+| Body small | `13px` | 400 | Labels, descripciones |
+| Badge / label | `11px` / `12px` | 600 | Chips, estados, puntos |
+| Mono / Score | `15px` / `16px` | 700 | Puntajes, contadores |
 
 ---
 
 ## 4. Espaciado y Bordes
 
-| Token         | Valor  | Uso                                          |
-| ------------- | ------ | -------------------------------------------- |
-| `--space-xs`  | `4px`  | Gaps internos mínimos                        |
-| `--space-sm`  | `8px`  | Padding de badges, separaciones internas     |
-| `--space-md`  | `16px` | Padding estándar de cards y celdas           |
-| `--space-lg`  | `24px` | Separación entre secciones                   |
-| `--space-xl`  | `32px` | Padding de contenedores principales          |
-| `--radius-sm` | `6px`  | Badges, inputs                               |
-| `--radius-md` | `12px` | Cards, modales                               |
-| `--radius-lg` | `20px` | Bottom sheets (esquinas superiores)          |
+| Token | Valor | Uso |
+|-------|-------|-----|
+| `--space-xs` | `4px` | Gaps internos mínimos |
+| `--space-sm` | `8px` | Padding de badges, separaciones |
+| `--space-md` | `16px` | Padding estándar cards/celdas |
+| `--space-lg` | `24px` | Separación entre secciones |
+| `--space-xl` | `32px` | Padding de contenedores principales |
+| `--radius-sm` | `6px` | Inputs, badges, botones |
+| `--radius-md` | `12px` | Cards, modales, botones grandes |
+| `--radius-lg` | `16px` | Hero cards, estados vacíos |
+| `--radius-xl` | `20px` | Bottom sheets (esquinas superiores) |
+| `--radius-full` | `9999px` | Pills, badges circulares |
 
 ---
 
-## 5. Iconografía
+## 5. Componentes de UI
 
-- **Librería**: [Lucide Icons](https://lucide.dev) (SVG, ligero, tree-shakeable)
-- **Tamaño estándar**: `18px` en desktop · `20px` en mobile
-- **Color**: heredado del texto en contexto (`currentColor`)
+### 5.1 Layout
 
----
+- **Desktop (≥ 768px):**
+  - Sidebar fija izquierda de `240px` (`bg-[#1A1D27]`, `border-r border-[#2E3347]`).
+  - Contenido principal con `max-w-[800px]` o `max-w-7xl` según vista, centrado.
+  - Sin topbar en escritorio.
 
-## 6. Layout — Desktop (≥ 768px)
+- **Mobile (< 768px):**
+  - Topbar de `60px` cuando `show-mobile-header`.
+  - Bottom nav de `56px` con safe-area.
+  - Contenido con `pb-24` para no quedar detrás del bottom nav.
 
-### 6.1 Estructura general
+### 5.2 Navegación
 
-```
-┌──────────────────────────────────────────────┐
-│  Sidebar fija (240px)  │  Contenido principal │
-│                        │                      │
-│  Logo + nav links      │  Toolbar + Data      │
-│                        │                      │
-└──────────────────────────────────────────────┘
-```
+| Vista | Ícono Lucide | Ruta |
+|-------|--------------|------|
+| Dashboard | `LayoutDashboard` | `/dashboard` |
+| Estadísticas | `BarChart3` | `/statistics` |
+| Pomodoro | `Timer` | `/pomodoro` |
+| Tareas | `CheckSquare` | `/tasks` |
+| Proyectos | `Folder` | `/projects` |
+| Criterios | `Sliders` | `/scoring-criteria` |
+| Configuración | `Settings` | `/settings` |
 
-- Sidebar fija a la izquierda, colapsable.
-- Contenido principal ocupa el resto del ancho.
-- Max-width del área de contenido: `1200px`, centrado.
+- Activo: `bg-[#6C63FF26] text-[#6C63FF] border-l-4 border-[#6C63FF]`.
+- Inactivo: `text-[#7B82A0] hover:bg-[#22263A]`.
 
-### 6.2 Visualización de datos
+### 5.3 Botones
 
-| Módulo              | Componente principal | Notas                                                    |
-| ------------------- | -------------------- | -------------------------------------------------------- |
-| TODO — tareas       | **Tabla**            | Columnas: Puntaje · Tarea · Criterios · Acciones         |
-| TODO — la top task  | **Hero card** encima | Destacada visualmente con borde de acento                |
-| Criterios scoring   | **Lista**            | Nombre · Puntos · Color · Acciones inline                |
-| Deudas              | **Tabla**            | Acreedor · Tipo · Total · Pendiente · Estado · Acciones  |
-| Historial de pagos  | **Lista anidada**    | Dentro del detalle de cada deuda                         |
+| Tipo | Clases esperadas |
+|------|-----------------|
+| Primary | `bg-[#6C63FF] text-white hover:opacity-85 rounded-[6px]` |
+| Primary Grande | `bg-[#6C63FF] text-white rounded-[16px] shadow-[0_4px_12px_rgba(108,99,255,0.2)] hover:shadow-[0_0_20px_rgba(108,99,255,0.4)]` |
+| Ghost | `bg-transparent border border-[#2E3347] text-[#7B82A0] hover:text-[#F0F2F8] hover:border-[#7B82A0]` |
+| Danger | `bg-[#EF4444] text-white hover:opacity-85` |
+| Warning | `bg-[#F59E0B] text-black font-bold` |
 
-### 6.3 Formularios en Desktop → Modal
+- Todos los botones: `inline-flex items-center justify-center gap-2`.
+- Disabled: `opacity-25` o `opacity-40` con `cursor-not-allowed`.
 
-- Los formularios (crear/editar) se abren en un **modal centrado** sobre la pantalla.
-- Overlay de fondo: `rgba(0,0,0,0.6)` + `backdrop-filter: blur(4px)` sutil.
-- Ancho del modal: `520px` máximo.
-- Estructura del modal: encabezado (título + botón cerrar ✕) · cuerpo con formulario · footer con botones (Cancelar / Guardar).
-- Cierre: clic en overlay, botón ✕ o tecla `Escape`.
+### 5.4 Inputs
 
----
+- Fondo: `bg-[#0F1117]`.
+- Borde: `border border-[#2E3347]`.
+- Texto: `text-[#F0F2F8]`.
+- Focus: `focus:ring-[#6C63FF] focus:border-[#6C63FF]`.
+- Radio: `rounded-[6px]` o `rounded-full` según tipo.
 
-## 7. Layout — Mobile (< 768px)
+### 5.5 Cards
 
-### 7.1 Estructura general
+- Fondo: `bg-[#1A1D27]`.
+- Borde: `border border-[#2E3347]`.
+- Radio: `rounded-[12px]` o `rounded-[24px]` para hero.
+- Sombra sutil: `shadow-sm` o `shadow-[0_2px_12px_rgba(0,0,0,0.3)]`.
 
-```
-┌──────────────────┐
-│  Top bar (60px)  │
-│  Logo + menú ≡   │
-├──────────────────┤
-│                  │
-│  Contenido       │
-│  (scroll)        │
-│                  │
-├──────────────────┤
-│  Bottom nav bar  │
-│  (56px)          │
-└──────────────────┘
-```
+### 5.6 Modal / Bottom Sheet
 
-- Sin sidebar. Navegación mediante **bottom navigation bar** con íconos + label.
-- Top bar con logo y nombre de la vista actual.
-- Contenido en scroll vertical con padding inferior para no quedar detrás del bottom nav.
+Usar siempre `ResponsiveDialog.vue`.
 
-### 7.2 Visualización de datos
+- **Desktop:** modal centrado, `sm:max-w-*`, fondo `bg-[#1A1D27]`, borde `#2E3347`, overlay `bg-black/60 backdrop-blur-sm`.
+- **Mobile:** bottom sheet con `rounded-t-[20px]`, handle `#2E3347`, `max-h-[85vh]`.
 
-| Módulo              | Componente principal | Notas                                                           |
-| ------------------- | -------------------- | --------------------------------------------------------------- |
-| TODO — top task     | **Hero Card grande** | Primera card, fondo con acento, label "⚡ Haz esto ahora"       |
-| TODO — tareas       | **Lista de Cards**   | Una card por tarea con puntaje + criterios como chips           |
-| Criterios scoring   | **Lista de Cards**   | Cards compactas con color, nombre y puntos                      |
-| Deudas              | **Lista de Cards**   | Acreedor · monto pendiente · estado · día de vencimiento        |
-| Historial de pagos  | **Lista simple**     | Dentro de la bottom sheet de detalle de cada deuda              |
+### 5.7 Badges de Criterios y Proyectos
 
-### 7.3 Formularios en Mobile → Bottom Sheet
-
-- Los formularios se despliegan como un **bottom modal** (estilo iOS / Android sheet).
-- Cubre aproximadamente el **85% de la pantalla** en altura.
-- Esquinas superiores redondeadas (`border-radius: 20px 20px 0 0`).
-- Handle/pill en la parte superior: `40×4px`, redondeado, color `--color-border`, centrado.
-- Se cierra arrastrando hacia abajo o tocando el overlay detrás.
-- El formulario tiene **scroll interno** si el contenido excede la altura disponible.
-- Fondo: `--color-surface` con overlay oscuro detrás.
+- Criterio: fondo `color+15`, texto `color`, borde `color+30`, `rounded-[8px]`.
+- Proyecto: fondo `color+20`, texto `color`, borde `color+40`, `rounded-full`.
+- Puntos: `font-mono font-bold` dentro del badge.
 
 ---
 
-## 8. Componentes — Definición Visual
+## 6. Páginas Específicas
 
-### 8.1 Card (Mobile)
+### 6.1 Dashboard
 
-- Fondo: `--color-surface`
-- Borde: `1px solid --color-border`
-- Border-radius: `--radius-md` (12px)
-- Padding interno: `--space-md` (16px)
-- Sombra: `0 2px 12px rgba(0,0,0,0.3)`
-- Separación entre cards: `--space-sm` (8px)
-- Estructura interna sugerida:
+- Hero card para top task: `border-[#F59E0B]`, gradiente superior `from-[#F59E0B] to-[#EF4444]`.
+- Botón principal: morado grande con sombra.
+- Footer de puntaje: Base Proyecto (info), Criterios (success), Total (texto principal).
+- Stats row: 2 cards con contadores grandes.
+- Empty states: icono grande en círculo de color, título, descripción, botón secundario.
 
-```
-[Badge estado / ícono]  [Título principal]       [Score / Monto]
-                        [Subtítulo / info]
-                        [Chips de criterios]
-```
+### 6.2 Tareas / Proyectos / Criterios
 
-### 8.2 Tabla (Desktop)
+- Desktop: tabla con header `bg-[#22263A]`, texto uppercase `11px`, filas alternadas.
+- Mobile: lista de cards compactas.
+- Acciones de fila: íconos inline o en menú según densidad.
 
-- Header: fondo `--color-surface-2`, texto uppercase `11px`, `--color-text-muted`, `letter-spacing: 0.08em`
-- Filas: fondo alternado `--color-surface` / `--color-bg`
-- Hover de fila: fondo `--color-surface-2`
-- Bordes: solo horizontales (`border-bottom: 1px solid --color-border`), sin bordes verticales
-- Acciones de fila: íconos que se revelan al hacer hover sobre la fila (no visibles por defecto)
+### 6.3 Pomodoro
 
-### 8.3 Modal (Desktop)
-
-- Overlay: `rgba(0,0,0,0.6)` + `backdrop-filter: blur(4px)`
-- Fondo: `--color-surface`
-- Borde: `1px solid --color-border`
-- Border-radius: `--radius-md` (12px)
-- Ancho: `520px` fijo
-- Animación de entrada: `fade + scale` (de 95% → 100%), duración `200ms`
-
-### 8.4 Bottom Sheet (Mobile)
-
-- Fondo: `--color-surface`
-- Border-radius: `20px 20px 0 0`
-- Handle/pill: `40×4px`, `--color-border`, centrado en la parte superior
-- Animación de entrada: `translateY(100%) → translateY(0)`, duración `280ms`
-- Easing: `cubic-bezier(0.32, 0.72, 0, 1)` (sensación natural táctil)
-
-### 8.5 Chip / Badge de Criterio
-
-- Fondo: color del criterio al `20%` de opacidad
-- Texto: color del criterio al `100%`
-- Border-radius: `--radius-sm` (6px)
-- Padding: `2px 8px`
-- Font: `11px`, peso `600`
-- Sin borde explícito
-
-### 8.6 Score Badge (Puntaje)
-
-- Muestra el número con sufijo `pts`
-- Font: `JetBrains Mono`, `14px`, peso `600`
-- Border-radius: `--radius-sm`
-- Color de fondo según rango (ver sección 2.4)
-
-### 8.7 Botones
-
-| Variante     | Fondo               | Texto             | Uso                          |
-| ------------ | ------------------- | ----------------- | ---------------------------- |
-| Primary      | `--color-primary`   | Blanco            | Acción principal (Guardar)   |
-| Ghost        | Transparente        | `--color-primary` | Cancelar, acción secundaria  |
-| Danger       | `--color-danger`    | Blanco            | Eliminar (confirmado)        |
-| Danger Ghost | Transparente        | `--color-danger`  | Confirmar eliminación suave  |
-
-- Border-radius: `--radius-sm` (6px)
-- Padding: `8px 16px` desktop · `10px 20px` mobile
-- Transición: `background 150ms ease`, `opacity 150ms ease`
-- Hover: `opacity: 0.85`
-- Disabled: `opacity: 0.4`, cursor `not-allowed`
+- Círculo/timer grande centrado.
+- Controles: play, pause, skip, reset con iconografía clara.
+- Estados: focus, short break, long break con colores distintivos.
+- Alarma / modal de fin de sesión usando `ResponsiveDialog`.
 
 ---
 
-## 9. Navegación
+## 7. Iconografía
 
-### Desktop — Sidebar (240px)
-
-| Sección        | Ícono Lucide  | Ruta                |
-| -------------- | ------------- | ------------------- |
-| Tareas (TODO)  | `CheckSquare` | `/tasks`            |
-| Criterios      | `Sliders`     | `/scoring-criteria` |
-| Deudas         | `CreditCard`  | `/debts`            |
-
-- Link **activo**: fondo `--color-primary-soft`, texto `--color-primary`, borde izquierdo `3px solid --color-primary`
-- Link **inactivo**: texto `--color-text-muted`, hover con fondo `--color-surface-2`
-
-### Mobile — Bottom Navigation (56px)
-
-| Tab       | Ícono Lucide  | Label     |
-| --------- | ------------- | --------- |
-| Tareas    | `CheckSquare` | Tareas    |
-| Criterios | `Sliders`     | Criterios |
-| Deudas    | `CreditCard`  | Deudas    |
-
-- Fondo: `--color-surface` con `border-top: 1px solid --color-border`
-- Tab activo: ícono + label en `--color-primary`
-- Tab inactivo: ícono + label en `--color-text-muted`
-- Respetar `env(safe-area-inset-bottom)` para dispositivos con notch/home bar
+- Librería: `lucide-vue-next`.
+- Tamaño desktop: `18px` (`w-4.5 h-4.5` o `w-5 h-5`).
+- Tamaño mobile: `20px` (`w-5 h-5` o `w-6 h-6`).
+- Color: heredado del contexto (`currentColor`) o `text-[#...]` explícito.
 
 ---
 
-## 10. Página Especial — "¿Qué hago ahora?" (Top Task)
+## 8. PWA
 
-La tarea con mayor puntaje recibe tratamiento visual especial.
-
-- **Desktop**: Hero card de ancho completo encima de la tabla. Fondo con gradiente sutil usando `--color-primary` al `10%` de opacidad. Label flotante `"⚡ Haz esto ahora"` en la esquina superior izquierda.
-- **Mobile**: Primera card de la lista, más grande que las demás. Mismo gradiente de acento.
-- Contiene: título de la tarea, puntaje total, chips de criterios, botón `"Marcar como hecha"`.
-
----
-
-## 11. PWA — Requisitos de Diseño
-
-| Aspecto             | Definición                                                       |
-| ------------------- | ---------------------------------------------------------------- |
-| **Ícono de app**    | Fondo `#6C63FF`, letras `SB` en blanco, `Inter 700`, esquinas redondeadas |
-| **Theme color**     | `#0F1117` (barra de sistema en Android/iOS)                      |
-| **Background color**| `#0F1117` (splash screen)                                        |
-| **Display mode**    | `standalone` (sin barra del navegador)                           |
-| **Orientación**     | `portrait` preferida (no bloqueada en fuerza)                    |
-| **Safe areas**      | `env(safe-area-inset-*)` en bottom nav y bottom sheets           |
-| **Íconos**          | `192×192px` y `512×512px` en el manifest                        |
-| **Offline**         | Service Worker con cache del shell — lectura básica sin internet |
-
-### Splash / Pantalla de carga
-
-- Fondo: `#0F1117`
-- Logo centrado (ícono SB + nombre "SecondBrain")
-- Texto: `"Cargando..."` en `--color-text-muted`
-- Sin animaciones complejas — solo fade-in al montar la app
+- Theme color: `#0F1117`.
+- Background color: `#0F1117`.
+- Display: `standalone`.
+- Safe areas: respetar `env(safe-area-inset-bottom)` en bottom nav y bottom sheets.
 
 ---
 
-## 12. Micro-interacciones
+## 9. Reglas de Oro
 
-| Acción                       | Feedback visual                                              |
-| ---------------------------- | ------------------------------------------------------------ |
-| Marcar tarea como completada | Card/fila hace fade-out suave + tachado del título (strikethrough) |
-| Registrar abono              | Monto pendiente se actualiza con animación de contador       |
-| Hover sobre fila de tabla    | Revelar íconos de acción + cambio de fondo suave             |
-| Abrir modal                  | Fade + scale de entrada (`200ms`)                            |
-| Cerrar modal                 | Fade + scale de salida inversa                               |
-| Abrir bottom sheet           | Slide-up (`280ms`, easing natural)                           |
-| Cerrar bottom sheet          | Slide-down (misma duración)                                  |
-| Botón guardar en carga       | Spinner inline + texto "Guardando..." + botón deshabilitado  |
-| Chip de criterio hover       | Scale `1.05` suave                                           |
-
----
-
-## 13. Tono Visual por Módulo
-
-| Módulo        | Acento visual                             | Razón                              |
-| ------------- | ----------------------------------------- | ---------------------------------- |
-| TODO / Tareas | `--color-primary` (violeta)               | Productividad, enfoque, acción     |
-| Criterios     | Color propio de cada criterio             | Personalización visual del usuario |
-| Deudas        | `--color-warning` / `--color-danger`      | Urgencia, dinero, atención         |
+1. **No agregar colores nuevos.** Usar solo los definidos arriba. Si se necesita otro color, se discute y se actualiza este archivo.
+2. **No usar colores Tailwind genéricos.** Nada de `bg-gray-700`, `text-red-500`, `border-slate-600`.
+3. **Siempre usar `ResponsiveDialog.vue`** para cualquier formulario modal/bottom-sheet.
+4. **Mobile y desktop comparten componentes.** No duplicar vistas; se adaptan con clases responsivas.
+5. **Los puntajes usan `font-mono`.**
+6. **Cualquier cambio visual se refleja en `Style.me` antes de finalizar la tarea.**
