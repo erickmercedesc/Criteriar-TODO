@@ -244,12 +244,20 @@ const isWaiting = computed(() => state.value.status === 'waiting');
 const isRunning = computed(() => state.value.status === 'running');
 const isPaused = computed(() => state.value.status === 'paused');
 
+const pageTitle = computed(() => {
+    let mode = 'Focus';
+    if (isShortBreak.value) mode = 'Descanso Corto';
+    else if (isLongBreak.value) mode = 'Descanso Largo';
+
+    return `${formattedTime.value} - ${mode}`;
+});
+
 // Focus cycles
 const currentCycle = computed(() => (state.value.focus_cycles % 4) + 1);
 </script>
 
 <template>
-    <Head title="Pomodoro" />
+    <Head :title="pageTitle" />
 
     <AppLayout title="Pomodoro">
         <template #header>

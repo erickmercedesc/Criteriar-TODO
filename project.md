@@ -50,13 +50,5 @@
 - **Filtro de Tareas Sin Proyecto (`project_id = none`):**
   - Se añadió la opción **"Sin Proyecto (Tareas sin asignar)"** en el selector de proyectos (`ProjectSelector.vue`).
   - Soporte en backend en `TaskController`, `DashboardController`, `PomodoroController`, `Api/TaskController` y `Api/McpController` para filtrar tareas con `project_id IS NULL` cuando se recibe `project_id = 'none'`.
-
-
-
-
-
-
-
-
-
-
+- **Título dinámico en Pomodoro:**
+  - Se actualizó `Index.vue` del Pomodoro para que el título de la página (`document.title`) muestre siempre dinámicamente el tiempo restante y la fase actual (Focus, Descanso Corto o Descanso Largo).
